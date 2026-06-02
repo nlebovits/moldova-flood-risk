@@ -1,0 +1,87 @@
+{
+  "_comment": "Romanian strings (default locale). Keys are stable identifiers; swap values per locale. Do not hardcode user-facing copy.",
+  "app": {
+    "title": "Expunerea terenului agricol la inundații",
+    "subtitle": "Republica Moldova"
+  },
+  "headline": {
+    "stat_template": "{pct} din terenul agricol cartografiat se află în zona inundabilă de 1-din-100 ani"
+  },
+  "rp": {
+    "label": "Perioadă de revenire",
+    "unit": "RP{n}",
+    "years_template": "1 din {n} ani"
+  },
+  "legend": {
+    "title": "Expunere · adâncime",
+    "low": "mică",
+    "high": "mare"
+  },
+  "provenance": {
+    "chip": "DATE REALE · JRC 90 M",
+    "about_title": "Despre date",
+    "about_body": "Datele reflectă inundațiile fluviale modelate de Centrul Comun de Cercetare (JRC) la o rezoluție de 90 de metri. Adâncimile afișate sunt indicative la această rezoluție și nu includ inundațiile pluviale."
+  },
+  "field_panel": {
+    "title": "Profil de expunere",
+    "rp_column": "Perioadă",
+    "pct_inundated": "% inundat",
+    "depth": "adâncime",
+    "indicative_note": "Valori indicative la 90 m"
+  },
+  "admin_panel": {
+    "title": "Expunere · unitate administrativă",
+    "total_ag": "Suprafață agricolă totală",
+    "exposed_template": "Expusă la RP{n}",
+    "fields_touched": "Câmpuri afectate",
+    "cropland_share": "Pondere teren arabil inundabil"
+  },
+  "eal": {
+    "title": "Pierdere anuală estimată (EAL)",
+    "value_exposed": "Valoare expusă",
+    "damage_curve": "Curbă de daune",
+    "eal_estimate": "EAL estimat",
+    "placeholder_tag": "coeficienți substituibili — metodă reală",
+    "per_ha_unit": "€ / ha",
+    "per_year_unit": "€ / an"
+  },
+  "portfolio": {
+    "load": "Încarcă portofoliu",
+    "portfolio_eal": "EAL portofoliu",
+    "parcels_exposed_template": "Parcele expuse la RP{n}",
+    "concentration_by_raion": "Concentrare pe raioane"
+  },
+  "becomes": {
+    "title": "Ce poate deveni",
+    "floor_title": "Astăzi — JRC 90 m, fluvial",
+    "ceiling_title": "Propus — hartă națională Fathom",
+    "ceiling_desc": "pluvial + fluvial, ~30 m, apărat / neapărat"
+  },
+  "layers": {
+    "title": "Straturi",
+    "pluvial": "Strat pluvial",
+    "pluvial_unavailable": "indisponibil în datele curente",
+    "footprints": "Amprente clădiri",
+    "infrastructure": "Infrastructură critică",
+    "extends_note": "se extinde cu datele proiectului"
+  },
+  "stamps": {
+    "real": "Date reale",
+    "proposed": "Propus"
+  },
+  "basemap": {
+    "label": "Fundal",
+    "positron": "Hartă deschisă",
+    "positron_dark": "Hartă întunecată",
+    "satellite": "Satelit"
+  },
+  "controls": {
+    "language": "Limbă",
+    "theme": "Temă",
+    "explore_map": "Explorează harta",
+    "toggle_satellite": "Comută fundal satelitar"
+  },
+  "units": {
+    "ha": "ha"
+  }
+}

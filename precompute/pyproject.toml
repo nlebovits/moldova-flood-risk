@@ -1,0 +1,27 @@
+[project]
+name = "moldova-precompute"
+version = "0.1.0"
+description = "Offline precompute pipeline: FTW + JRC zonal stats for Moldova"
+readme = "README.md"
+authors = [
+    { name = "nlebovits", email = "nissim.lebovits@vanderbilt.edu" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.4.1",
+    "exactextract>=0.3.0",
+    "geopandas>=1.1.3",
+    "httpx>=0.28.1",
+    "numpy>=2.4.6",
+    "pmtiles>=3.7.0",
+    "pyogrio>=0.12.1",
+    "rasterio>=1.5.0",
+    "shapely>=2.1.2",
+]
+
+[project.scripts]
+moldova-precompute = "moldova_precompute:main"
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"

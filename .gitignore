@@ -1,0 +1,66 @@
+# ===========================================
+# Licensed brand fonts — DO NOT COMMIT
+# Per README: Vert Grotesk Display, Neue Swiss, Berkeley Mono are licensed
+# and must not be committed to a public-capable repo. The app uses
+# Fraunces + Inter web fallbacks declared in colors_and_type.css until
+# fonts are dropped in locally by a licensed dev.
+# ===========================================
+design-reference/fonts/*
+!design-reference/fonts/.gitkeep
+
+# ===========================================
+# Node / Vite (app/)
+# ===========================================
+app/node_modules/
+app/dist/
+app/.vite/
+app/*.local
+app/.env
+app/.env.local
+app/.env.*.local
+app/.vercel/
+app/coverage/
+
+# ===========================================
+# Python / uv (precompute/)
+# ===========================================
+precompute/.venv/
+precompute/__pycache__/
+precompute/**/__pycache__/
+precompute/*.pyc
+precompute/.ipynb_checkpoints/
+precompute/.pytest_cache/
+
+# ===========================================
+# Precompute build artifacts — large, regenerable.
+# Output JSON/pmtiles land in app/public/data/ and ARE committed
+# so deploys don't need a precompute step.
+# ===========================================
+precompute/_cache/
+precompute/_work/
+precompute/*.tif
+precompute/*.tiff
+
+# ===========================================
+# Editor / OS
+# ===========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# ===========================================
+# Logs
+# ===========================================
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===========================================
+# code-review-graph (kept; tracks code, not data)
+# ===========================================
+# (intentionally NOT ignored — graph.db helps reviewers)

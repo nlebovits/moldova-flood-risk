@@ -1,0 +1,473 @@
+/* =========================================================
+   Moldova Ag Flood-Risk Map — Design Tokens (MIRROR)
+   ---------------------------------------------------------
+   This file is a MIRROR of design-reference/colors_and_type.css
+   with two adjustments for the app environment:
+     1. @font-face URLs rewritten from `fonts/*` to `/fonts/*`
+        so they resolve through Vite's public/ directory
+        (which symlinks back to design-reference/fonts/).
+     2. Flood ramp `--c-flood-1..6` tokens appended at the
+        bottom — these live in README.md, not the source CSS.
+
+   AUTHORITATIVE SOURCE: design-reference/colors_and_type.css
+   When the canonical file changes, mirror the change here.
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* === Vert Grotesk Display === */
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplayVF.ttf") format("truetype-variations"),
+       url("/fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplay-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplay-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplay-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("/fonts/VertGroteskDisplay-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === Neue Swiss === */
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("/fonts/NeueSwiss-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === Berkeley Mono === */
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("/fonts/BerkeleyMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =========================================================
+   Token variables (LIGHT theme defaults)
+   ========================================================= */
+:root {
+  /* ---- Brand color (raw) ------------------------------- */
+  --re-lagoon:           #469695;
+  --re-ponderosa:        #26383A;
+  --re-tangerine:        #FCBB15;
+  --re-dusty-white:      #EFEBEA;
+  --re-stark-black:      #000000;
+  --re-pure-white:       #FFFFFF;
+
+  --re-lagoon-50:        #E7F0F0;
+  --re-lagoon-100:       #C9DEDD;
+  --re-lagoon-200:       #9BC3C2;
+  --re-lagoon-300:       #6DA8A7;
+  --re-lagoon-400:       #469695;
+  --re-lagoon-500:       #3B7F7E;
+  --re-lagoon-600:       #2F6766;
+  --re-lagoon-700:       #26383A;
+  --re-lagoon-800:       #1B2A2C;
+  --re-lagoon-900:       #111B1C;
+
+  --re-dust-50:          #F8F5F4;
+  --re-dust-100:         #EFEBEA;
+  --re-dust-200:         #E1DBD9;
+  --re-dust-300:         #C8C0BD;
+  --re-dust-400:         #A39A96;
+
+  /* ---- Semantic surfaces (light) ----------------------- */
+  --color-bg:            var(--re-dusty-white);
+  --color-bg-raised:     var(--re-pure-white);
+  --color-bg-sunken:     var(--re-dust-200);
+  --color-bg-inverse:    var(--re-ponderosa);
+
+  --color-fg-1:          var(--re-ponderosa);
+  --color-fg-2:          #4A5C5E;
+  --color-fg-3:          #6E7E80;
+  --color-fg-muted:      #93A0A1;
+  --color-fg-inverse:    var(--re-dusty-white);
+
+  --color-border:        rgba(38, 56, 58, 0.12);
+  --color-border-strong: rgba(38, 56, 58, 0.24);
+  --color-border-inverse:rgba(239, 235, 234, 0.18);
+
+  --color-accent:        var(--re-lagoon);
+  --color-accent-hover:  var(--re-lagoon-500);
+  --color-accent-pressed:var(--re-lagoon-600);
+  --color-accent-fg:     var(--re-pure-white);
+
+  --color-highlight:     var(--re-tangerine);
+  --color-highlight-fg:  var(--re-ponderosa);
+
+  --color-link:          var(--re-lagoon-500);
+  --color-link-hover:    var(--re-lagoon-600);
+  --color-link-visited:  var(--re-lagoon-700);
+
+  --color-success:       #3F8F6E;
+  --color-warning:       #C98A1A;
+  --color-danger:        #B5453E;
+
+  /* ---- Flood ramp (Hydro — LOCKED per README) ---------- */
+  --c-flood-1: #CFE3F2;
+  --c-flood-2: #9BC4E6;
+  --c-flood-3: #5E97D1;
+  --c-flood-4: #2E68B5;
+  --c-flood-5: #1C4189;
+  --c-flood-6: #0E2356;
+  --c-field-stroke: rgba(38, 56, 58, 0.28);
+
+  /* ---- Type families ----------------------------------- */
+  --font-display: "Vert Grotesk Display", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body:    "Neue Swiss", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono:    "Berkeley Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---- Type scale -------------------------------------- */
+  --fs-12:  0.75rem;
+  --fs-13:  0.8125rem;
+  --fs-14:  0.875rem;
+  --fs-16:  1rem;
+  --fs-18:  1.125rem;
+  --fs-20:  1.25rem;
+  --fs-24:  1.5rem;
+  --fs-30:  1.875rem;
+  --fs-36:  2.25rem;
+  --fs-48:  3rem;
+  --fs-64:  4rem;
+  --fs-80:  5rem;
+  --fs-112: 7rem;
+
+  /* ---- Line height ------------------------------------- */
+  --lh-tight:   1.1;
+  --lh-snug:    1.25;
+  --lh-normal:  1.5;
+  --lh-relaxed: 1.65;
+
+  /* ---- Tracking ---------------------------------------- */
+  --tracking-tight:   -0.02em;
+  --tracking-snug:    -0.01em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-eyebrow: 0.14em;
+
+  /* ---- Weight ------------------------------------------ */
+  --fw-light:    300;
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* ---- Spacing (4-pt) ---------------------------------- */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:   12px;
+  --sp-4:   16px;
+  --sp-5:   20px;
+  --sp-6:   24px;
+  --sp-8:   32px;
+  --sp-10:  40px;
+  --sp-12:  48px;
+  --sp-16:  64px;
+  --sp-20:  80px;
+  --sp-24:  96px;
+  --sp-32:  128px;
+
+  /* ---- Radii (DESIGN OVERRIDE: all zero for this product) */
+  --r-0:    0px;
+  --r-2:    0px;
+  --r-4:    0px;
+  --r-6:    0px;
+  --r-8:    0px;
+  --r-12:   0px;
+  --r-16:   0px;
+  --r-pill: 0px;
+
+  /* ---- Shadows ----------------------------------------- */
+  --shadow-1: 0 1px 2px rgba(38, 56, 58, 0.06),
+              0 1px 1px rgba(38, 56, 58, 0.04);
+  --shadow-2: 0 2px 6px rgba(38, 56, 58, 0.08),
+              0 1px 2px rgba(38, 56, 58, 0.05);
+  --shadow-3: 0 8px 24px rgba(38, 56, 58, 0.10),
+              0 2px 6px rgba(38, 56, 58, 0.06);
+  --shadow-inset: inset 0 0 0 1px rgba(38, 56, 58, 0.08);
+
+  /* ---- Motion ------------------------------------------ */
+  --ease-out:    cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.2, 1);
+  --dur-fast:    120ms;
+  --dur-base:    200ms;
+  --dur-slow:    320ms;
+
+  /* ---- Layout ------------------------------------------ */
+  --container:        1180px;
+  --container-narrow: 720px;
+  --gutter:           24px;
+}
+
+/* =========================================================
+   Dark theme — toggled by .dark on <html> or [data-theme="dark"]
+   ========================================================= */
+.dark,
+[data-theme="dark"] {
+  --color-bg:            var(--re-ponderosa);
+  --color-bg-raised:     #2D4244;
+  --color-bg-sunken:     var(--re-lagoon-800);
+  --color-bg-inverse:    var(--re-dusty-white);
+
+  --color-fg-1:          var(--re-dusty-white);
+  --color-fg-2:          #C5CECF;
+  --color-fg-3:          #98A4A6;
+  --color-fg-muted:      #6E7E80;
+  --color-fg-inverse:    var(--re-ponderosa);
+
+  --color-border:        rgba(239, 235, 234, 0.14);
+  --color-border-strong: rgba(239, 235, 234, 0.28);
+
+  --color-accent:        var(--re-lagoon-200);
+  --color-accent-hover:  var(--re-lagoon-100);
+  --color-accent-pressed:var(--re-pure-white);
+  --color-accent-fg:     var(--re-ponderosa);
+
+  --color-link:          var(--re-lagoon-200);
+  --color-link-hover:    var(--re-dusty-white);
+}
+
+/* =========================================================
+   Semantic type styles (designer-authored class helpers)
+   Kept verbatim from source-of-truth so existing markup works.
+   ========================================================= */
+
+.re-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+
+.re-display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(var(--fs-64), 8vw, var(--fs-112));
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 144;
+  text-wrap: balance;
+}
+
+.re-display-l {
+  font-family: var(--font-display);
+  font-size: clamp(var(--fs-48), 6vw, var(--fs-80));
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 144;
+  text-wrap: balance;
+}
+
+.re-h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-48);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 96;
+  text-wrap: balance;
+}
+
+.re-h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-36);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 72;
+  text-wrap: balance;
+}
+
+.re-h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 48;
+}
+
+.re-h4 {
+  font-family: var(--font-body);
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+}
+
+.re-h5 {
+  font-family: var(--font-body);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--color-fg-1);
+}
+
+.re-lead {
+  font-family: var(--font-body);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--color-fg-1);
+  text-wrap: pretty;
+}
+
+.re-body {
+  font-family: var(--font-body);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--color-fg-1);
+  text-wrap: pretty;
+}
+
+.re-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-2);
+}
+
+.re-meta {
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-3);
+}
+
+.re-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-2);
+}
+
+.re-quote {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  font-weight: var(--fw-light);
+  font-style: italic;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  text-wrap: balance;
+}
+
+/* =========================================================
+   Body base — opt in by adding `.re-base` to a wrapper
+   ========================================================= */
+.re-base {
+  background: var(--color-bg);
+  color: var(--color-fg-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-16);
+  line-height: var(--lh-relaxed);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.re-base a {
+  color: var(--color-link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.re-base a:hover { color: var(--color-link-hover); }
+.re-base a:visited { color: var(--color-link-visited); }
+
+::selection {
+  background: var(--re-tangerine);
+  color: var(--re-ponderosa);
+}

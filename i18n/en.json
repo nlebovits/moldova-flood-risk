@@ -1,0 +1,87 @@
+{
+  "_comment": "English strings (fast-follow locale). Mirrors the keys in ro.json.",
+  "app": {
+    "title": "Agricultural land flood exposure",
+    "subtitle": "Republic of Moldova"
+  },
+  "headline": {
+    "stat_template": "{pct} of mapped agricultural land falls within the 1-in-100 floodplain"
+  },
+  "rp": {
+    "label": "Return period",
+    "unit": "RP{n}",
+    "years_template": "1 in {n} years"
+  },
+  "legend": {
+    "title": "Exposure · depth",
+    "low": "low",
+    "high": "high"
+  },
+  "provenance": {
+    "chip": "REAL DATA · JRC 90 M",
+    "about_title": "About the data",
+    "about_body": "Data reflects fluvial (riverine) flooding modeled by the Joint Research Centre (JRC) at 90 m resolution. Depths shown are indicative at this resolution and do not include pluvial (surface-water) flooding."
+  },
+  "field_panel": {
+    "title": "Exposure profile",
+    "rp_column": "Period",
+    "pct_inundated": "% inundated",
+    "depth": "depth",
+    "indicative_note": "Indicative at 90 m"
+  },
+  "admin_panel": {
+    "title": "Exposure · administrative unit",
+    "total_ag": "Total agricultural area",
+    "exposed_template": "Exposed at RP{n}",
+    "fields_touched": "Fields touched",
+    "cropland_share": "Share of cropland in floodplain"
+  },
+  "eal": {
+    "title": "Expected Annual Loss (EAL)",
+    "value_exposed": "Value exposed",
+    "damage_curve": "Damage curve",
+    "eal_estimate": "Estimated EAL",
+    "placeholder_tag": "coefficients placeholder — method real",
+    "per_ha_unit": "€ / ha",
+    "per_year_unit": "€ / yr"
+  },
+  "portfolio": {
+    "load": "Load portfolio",
+    "portfolio_eal": "Portfolio EAL",
+    "parcels_exposed_template": "Parcels exposed at RP{n}",
+    "concentration_by_raion": "Concentration by raion"
+  },
+  "becomes": {
+    "title": "What this becomes",
+    "floor_title": "Today — JRC 90 m, fluvial",
+    "ceiling_title": "Proposed — Fathom national map",
+    "ceiling_desc": "pluvial + fluvial, ~30 m, defended / undefended"
+  },
+  "layers": {
+    "title": "Layers",
+    "pluvial": "Pluvial layer",
+    "pluvial_unavailable": "not available in current data",
+    "footprints": "Building footprints",
+    "infrastructure": "Critical infrastructure",
+    "extends_note": "extends with project data"
+  },
+  "stamps": {
+    "real": "Real data",
+    "proposed": "Proposed"
+  },
+  "basemap": {
+    "label": "Basemap",
+    "positron": "Light map",
+    "positron_dark": "Dark map",
+    "satellite": "Satellite"
+  },
+  "controls": {
+    "language": "Language",
+    "theme": "Theme",
+    "explore_map": "Explore the map",
+    "toggle_satellite": "Toggle satellite basemap"
+  },
+  "units": {
+    "ha": "ha"
+  }
+}

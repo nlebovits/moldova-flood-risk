@@ -1,0 +1,38 @@
+import { useApp, RPS } from '../store/state';
+import { t } from '../lib/i18n';
+import { cn } from '../lib/utils';
+
+export function RPSelector() {
+  const { selectedRP, setRP, locale } = useApp();
+  return (
+    <div className="pointer-events-auto flex flex-col items-center gap-1">
+      <span className="re-eyebrow font-mono text-[var(--color-fg-3)]">
+        {t(locale, 'rp.label')}
+      </span>
+      <div className="flex border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)] shadow-[0_2px_6px_rgba(38,56,58,0.08)]">
+        {RPS.map((rp) => {
+          const active = rp === selectedRP;
+          return (
+            <button
+              key={rp}
+              type="button"
+              onClick={() => setRP(rp)}
+              className={cn(
+                'font-mono text-[13px] tracking-wide transition-colors duration-200',
+                'border-l border-[var(--color-border)] first:border-l-0',
+                'px-3 py-2',
+                active
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'bg-transparent text-[var(--color-fg-2)] hover:bg-[var(--color-bg-sunken)] hover:text-[var(--color-fg-1)]',
+              )}
+              aria-pressed={active}
+              title={t(locale, 'rp.years_template', { n: rp })}
+            >
+              RP{rp}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

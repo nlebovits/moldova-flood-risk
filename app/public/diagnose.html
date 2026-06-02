@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Diagnose</title>
+  <link rel="stylesheet"
+    href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #map { position: absolute; inset: 0; }
+    #log {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      max-height: 40vh; overflow: auto; z-index: 10;
+      background: rgba(0,0,0,0.85); color: #0f0;
+      font: 11px ui-monospace, monospace; padding: 6px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <pre id="log"></pre>
+  <script type="module">
+    import maplibregl from "https://esm.run/maplibre-gl@5.24.0";
+    import { Protocol } from "https://esm.run/pmtiles@4.4.1";
+
+    const log = (...a) => {
+      const el = document.getElementById("log");
+      el.textContent += a.map(x => typeof x === "string" ? x : JSON.stringify(x)).join(" ") + "\n";
+      el.scrollTop = el.scrollHeight;
+      console.log(...a);
+    };
+
+    window.addEventListener("error", e => log("WINDOW ERROR:", e.message));
+    window.addEventListener("unhandledrejection", e =>
+      log("UNHANDLED REJECTION:", e.reason?.message || String(e.reason)));
+
+    log("step 1: register pmtiles protocol");
+    const proto = new Protocol({ metadata: true });
+    maplibregl.addProtocol("pmtiles", proto.tile);
+
+    log("step 2: build style");
+    const style = {
+      version: 8,
+      glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+      sources: {
+        basemap: {
+          type: "vector",
+          url: "pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/global.pmtiles",
+        },
+        ftw: {
+          type: "vector",
+          url: "pmtiles://https://data.source.coop/ftw/global-data/predictions/vectors/alpha/global.pmtiles",
+        },
+      },
+      layers: [
+        { id: "bg", type: "background", paint: { "background-color": "#EFEBEA" } },
+        { id: "earth", type: "fill", source: "basemap", "source-layer": "earth",
+          paint: { "fill-color": "#E4E1DE" } },
+        { id: "water", type: "fill", source: "basemap", "source-layer": "water",
+          paint: { "fill-color": "#CFD8DC" } },
+        { id: "boundaries", type: "line", source: "basemap", "source-layer": "boundaries",
+          paint: { "line-color": "rgba(38,56,58,0.4)", "line-width": 1 } },
+        { id: "fields-fill", type: "fill", source: "ftw",
+          "source-layer": "field-2025-01-01 00:00:00",
+          paint: { "fill-color": "#5E97D1", "fill-opacity": 0.5 } },
+        { id: "fields-stroke", type: "line", source: "ftw",
+          "source-layer": "field-2025-01-01 00:00:00",
+          paint: { "line-color": "rgba(38,56,58,0.6)", "line-width": 0.5 } },
+      ],
+    };
+
+    log("step 3: create map");
+    const map = new maplibregl.Map({
+      container: "map",
+      style,
+      center: [28.6, 47.05],
+      zoom: 7.1,
+    });
+
+    map.on("load", () => log("EVENT: load fired"));
+    map.on("idle", () => log("EVENT: idle (one-time only)"));
+    map.on("error", e => log("MAP ERROR:", e.error?.message || String(e), JSON.stringify(e.source||{})));
+    map.on("sourcedata", e => {
+      if (e.isSourceLoaded) log("source loaded:", e.sourceId, "layer:", e.sourceDataType);
+    });
+
+    // Hard timer to confirm map.loaded() within 10s.
+    setTimeout(() => {
+      log("after 10s — map.loaded():", map.loaded());
+      log("layers:", map.getStyle().layers.map(l => l.id).join(","));
+      log("sources:", Object.keys(map.getStyle().sources).join(","));
+      // Probe whether the source is ACTUALLY loaded
+      for (const src of Object.keys(map.getStyle().sources)) {
+        log(`  isSourceLoaded(${src}):`, map.isSourceLoaded(src));
+      }
+    }, 10000);
+  </script>
+</body>
+</html>

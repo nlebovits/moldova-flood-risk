@@ -1,0 +1,488 @@
+/* =========================================================
+   Radiant Earth — Colors & Type
+   Foundation tokens used across the design system.
+   =========================================================
+
+   FONT NOTE
+   ---------
+   Brand fonts are licensed:
+     - Display: "Vert Grotesk Display" (Light → Bold + variable)
+     - Body:    "Neue Swiss"           (Hairline → Black + italics)
+   These are NOT bundled in this project.
+
+   Web substitutes (Google Fonts) are used here so HTML
+   prototypes still render with the right TONE:
+     - Display → "Fraunces" (humanist, warm, slightly literary —
+                  echoes the serif-like character of the
+                  Radiant Earth wordmark and the essayistic
+                  voice of the org's writing)
+     - Body    → "Inter"    (a clean, neutral grotesque close
+                  in proportions to Neue Swiss; widely supported)
+
+   Swap these out with the licensed files when packaging real
+   production work.
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap");
+
+/* Vert Grotesk Display — licensed brand display font (uploaded) */
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplayVF.ttf") format("truetype-variations"),
+       url("fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplay-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplay-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplay-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vert Grotesk Display";
+  src: url("fonts/VertGroteskDisplay-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Neue Swiss — licensed brand body font (uploaded) */
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Swiss";
+  src: url("fonts/NeueSwiss-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Berkeley Mono — licensed brand monospace (uploaded) */
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("fonts/BerkeleyMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("fonts/BerkeleyMono-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("fonts/BerkeleyMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Berkeley Mono";
+  src: url("fonts/BerkeleyMono-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  /* ---- Brand color (raw) ------------------------------------------------ */
+  --re-lagoon:           #469695; /* Cyan / Lagoon — primary brand */
+  --re-ponderosa:        #26383A; /* Dark Cyan / Ponderosa Pine — primary dark */
+  --re-tangerine:        #FCBB15; /* Tangerine Yellow — accent */
+  --re-dusty-white:      #EFEBEA; /* Dusty White / White Alyssum — light bg */
+  --re-stark-black:      #000000; /* Stark Black — high contrast */
+  --re-pure-white:       #FFFFFF;
+
+  /* Lagoon scale (derived, harmonious) — for tints, hovers, surfaces */
+  --re-lagoon-50:        #E7F0F0;
+  --re-lagoon-100:       #C9DEDD;
+  --re-lagoon-200:       #9BC3C2;
+  --re-lagoon-300:       #6DA8A7;
+  --re-lagoon-400:       #469695; /* same as --re-lagoon */
+  --re-lagoon-500:       #3B7F7E;
+  --re-lagoon-600:       #2F6766;
+  --re-lagoon-700:       #26383A; /* meets ponderosa */
+  --re-lagoon-800:       #1B2A2C;
+  --re-lagoon-900:       #111B1C;
+
+  /* Dusty white scale — for layered light surfaces */
+  --re-dust-50:          #F8F5F4;
+  --re-dust-100:         #EFEBEA;
+  --re-dust-200:         #E1DBD9;
+  --re-dust-300:         #C8C0BD;
+  --re-dust-400:         #A39A96;
+
+  /* ---- Semantic color tokens (light theme by default) ------------------- */
+  --color-bg:            var(--re-dusty-white);
+  --color-bg-raised:     var(--re-pure-white);
+  --color-bg-sunken:     var(--re-dust-200);
+  --color-bg-inverse:    var(--re-ponderosa);
+
+  --color-fg-1:          var(--re-ponderosa);   /* primary text */
+  --color-fg-2:          #4A5C5E;               /* secondary text */
+  --color-fg-3:          #6E7E80;               /* tertiary / meta */
+  --color-fg-muted:      #93A0A1;               /* placeholder, disabled */
+  --color-fg-inverse:    var(--re-dusty-white); /* on dark surfaces */
+
+  --color-border:        rgba(38, 56, 58, 0.12);
+  --color-border-strong: rgba(38, 56, 58, 0.24);
+  --color-border-inverse:rgba(239, 235, 234, 0.18);
+
+  --color-accent:        var(--re-lagoon);
+  --color-accent-hover:  var(--re-lagoon-500);
+  --color-accent-pressed:var(--re-lagoon-600);
+  --color-accent-fg:     var(--re-pure-white);
+
+  --color-highlight:     var(--re-tangerine);   /* used sparingly, never as primary */
+  --color-highlight-fg:  var(--re-ponderosa);
+
+  --color-link:          var(--re-lagoon-500);
+  --color-link-hover:    var(--re-lagoon-600);
+  --color-link-visited:  var(--re-lagoon-700);
+
+  /* Status (derived, used in product UI rarely; not on marketing) */
+  --color-success:       #3F8F6E;
+  --color-warning:       #C98A1A;
+  --color-danger:        #B5453E;
+
+  /* ---- Type families ---------------------------------------------------- */
+  --font-display:        "Vert Grotesk Display", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body:           "Neue Swiss", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono:           "Berkeley Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---- Type scale (rem-based; 1rem = 16px) ----------------------------- */
+  --fs-12:  0.75rem;   /* 12 — fine print, captions, eyebrow when small */
+  --fs-13:  0.8125rem; /* 13 — meta, dates */
+  --fs-14:  0.875rem;  /* 14 — small body, UI text */
+  --fs-16:  1rem;      /* 16 — body */
+  --fs-18:  1.125rem;  /* 18 — large body, lead */
+  --fs-20:  1.25rem;   /* 20 — h5 / large UI */
+  --fs-24:  1.5rem;    /* 24 — h4 */
+  --fs-30:  1.875rem;  /* 30 — h3 */
+  --fs-36:  2.25rem;   /* 36 — h2 */
+  --fs-48:  3rem;      /* 48 — h1 */
+  --fs-64:  4rem;      /* 64 — display M */
+  --fs-80:  5rem;      /* 80 — display L (hero) */
+  --fs-112: 7rem;      /* 112 — display XL */
+
+  /* ---- Line height ------------------------------------------------------ */
+  --lh-tight:   1.1;
+  --lh-snug:    1.25;
+  --lh-normal:  1.5;
+  --lh-relaxed: 1.65;
+
+  /* ---- Tracking --------------------------------------------------------- */
+  --tracking-tight:  -0.02em;  /* big display */
+  --tracking-snug:   -0.01em;  /* h1–h3 */
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+  --tracking-eyebrow:0.14em;   /* uppercase labels */
+
+  /* ---- Weight ----------------------------------------------------------- */
+  --fw-light:    300;
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* ---- Spacing (4-pt grid) --------------------------------------------- */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:   12px;
+  --sp-4:   16px;
+  --sp-5:   20px;
+  --sp-6:   24px;
+  --sp-8:   32px;
+  --sp-10:  40px;
+  --sp-12:  48px;
+  --sp-16:  64px;
+  --sp-20:  80px;
+  --sp-24:  96px;
+  --sp-32:  128px;
+
+  /* ---- Radii ------------------------------------------------------------ */
+  --r-0:    0px;
+  --r-2:    2px;
+  --r-4:    4px;
+  --r-6:    6px;   /* default for inputs, chips */
+  --r-8:    8px;   /* cards */
+  --r-12:   12px;  /* large cards */
+  --r-16:   16px;  /* hero modules */
+  --r-pill: 999px;
+
+  /* ---- Shadows (soft, never harsh; brand uses still imagery, not lift) - */
+  --shadow-1: 0 1px 2px rgba(38, 56, 58, 0.06),
+              0 1px 1px rgba(38, 56, 58, 0.04);
+  --shadow-2: 0 2px 6px rgba(38, 56, 58, 0.08),
+              0 1px 2px rgba(38, 56, 58, 0.05);
+  --shadow-3: 0 8px 24px rgba(38, 56, 58, 0.10),
+              0 2px 6px rgba(38, 56, 58, 0.06);
+  --shadow-inset: inset 0 0 0 1px rgba(38, 56, 58, 0.08);
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --ease-out:    cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.2, 1);
+  --dur-fast:    120ms;
+  --dur-base:    200ms;
+  --dur-slow:    320ms;
+
+  /* ---- Layout ----------------------------------------------------------- */
+  --container:   1180px;
+  --container-narrow: 720px; /* essay / blog body */
+  --gutter:      24px;
+}
+
+/* =========================================================
+   Dark / inverse surface — for footers, hero panels,
+   social cards, etc. Apply to a wrapper with
+   class="re-dark" or data-theme="dark".
+   ========================================================= */
+.re-dark,
+[data-theme="dark"] {
+  --color-bg:            var(--re-ponderosa);
+  --color-bg-raised:     #2D4244;
+  --color-bg-sunken:     var(--re-lagoon-800);
+  --color-bg-inverse:    var(--re-dusty-white);
+
+  --color-fg-1:          var(--re-dusty-white);
+  --color-fg-2:          #C5CECF;
+  --color-fg-3:          #98A4A6;
+  --color-fg-muted:      #6E7E80;
+  --color-fg-inverse:    var(--re-ponderosa);
+
+  --color-border:        rgba(239, 235, 234, 0.14);
+  --color-border-strong: rgba(239, 235, 234, 0.28);
+
+  --color-accent:        var(--re-lagoon-200);
+  --color-accent-hover:  var(--re-lagoon-100);
+  --color-accent-pressed:var(--re-pure-white);
+  --color-accent-fg:     var(--re-ponderosa);
+
+  --color-link:          var(--re-lagoon-200);
+  --color-link-hover:    var(--re-dusty-white);
+}
+
+/* =========================================================
+   Semantic type styles — apply directly via class
+   ========================================================= */
+
+.re-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+
+.re-display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(var(--fs-64), 8vw, var(--fs-112));
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 144;
+  text-wrap: balance;
+}
+
+.re-display-l {
+  font-family: var(--font-display);
+  font-size: clamp(var(--fs-48), 6vw, var(--fs-80));
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 144;
+  text-wrap: balance;
+}
+
+.re-h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-48);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 96;
+  text-wrap: balance;
+}
+
+.re-h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-36);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 72;
+  text-wrap: balance;
+}
+
+.re-h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  font-variation-settings: "opsz" 48;
+}
+
+.re-h4 {
+  font-family: var(--font-body);
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+}
+
+.re-h5 {
+  font-family: var(--font-body);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--color-fg-1);
+}
+
+.re-lead {
+  font-family: var(--font-body);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--color-fg-1);
+  text-wrap: pretty;
+}
+
+.re-body {
+  font-family: var(--font-body);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--color-fg-1);
+  text-wrap: pretty;
+}
+
+.re-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-2);
+}
+
+.re-meta {
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-3);
+}
+
+.re-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--color-fg-2);
+}
+
+.re-quote {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  font-weight: var(--fw-light);
+  font-style: italic;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-fg-1);
+  text-wrap: balance;
+}
+
+/* =========================================================
+   Base reset hooks (opt-in by adding `.re-base` to <body>)
+   ========================================================= */
+.re-base {
+  background: var(--color-bg);
+  color: var(--color-fg-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-16);
+  line-height: var(--lh-relaxed);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.re-base a {
+  color: var(--color-link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.re-base a:hover { color: var(--color-link-hover); }
+.re-base a:visited { color: var(--color-link-visited); }
+
+::selection {
+  background: var(--re-tangerine);
+  color: var(--re-ponderosa);
+}

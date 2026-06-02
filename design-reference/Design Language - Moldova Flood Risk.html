@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design Language — Moldova Ag Flood Risk</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  :root{
+    /* Map / data surface (darker, cooler than Ponderosa for satellite contrast) */
+    --map-base:    #121A19;
+    --map-base-2:  #16201F;
+    --map-grid:    rgba(239,235,234,0.08);
+
+    /* Flood exposure — HYDRO ramp (sequential blue, "depth at selected RP") */
+    --f1:#CFE3F2; --f2:#9BC4E6; --f3:#5E97D1; --f4:#2E68B5; --f5:#1C4189; --f6:#0E2356;
+
+    /* Flood exposure — SEVERITY ramp (diverging, brings brand tangerine for worst end) */
+    --s1:#BFD8EC; --s2:#6FA6D6; --s3:#2E68B5; --s4:#1C4189; --s5:#C98A1A; --s6:#FCBB15;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--re-dust-50);
+    color:var(--color-fg-1);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 32px; }
+
+  /* ---- masthead ---- */
+  .masthead{ padding:72px 0 40px; border-bottom:1px solid var(--color-border); }
+  .kicker{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--re-lagoon-500); display:flex; gap:10px; align-items:center; margin:0 0 20px;
+  }
+  .kicker::before{ content:""; width:26px; height:1px; background:var(--re-lagoon-500); display:inline-block; }
+  .masthead h1{
+    font-family:var(--font-display); font-weight:400; letter-spacing:-0.02em; line-height:1.04;
+    font-size:clamp(40px,5.6vw,68px); margin:0 0 22px; max-width:16ch; color:var(--re-ponderosa);
+  }
+  .masthead .lede{
+    font-size:19px; line-height:1.6; color:var(--color-fg-2); max-width:62ch; margin:0;
+  }
+  .masthead .lede b{ color:var(--re-ponderosa); font-weight:600; }
+
+  .meta-row{ display:flex; flex-wrap:wrap; gap:28px 56px; margin-top:34px; }
+  .meta-row .m{ }
+  .meta-row .m .lbl{ font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--color-fg-muted); display:block; margin-bottom:6px; }
+  .meta-row .m .val{ font-size:15px; color:var(--re-ponderosa); font-weight:500; }
+
+  /* ---- section scaffold ---- */
+  section{ padding:64px 0; border-bottom:1px solid var(--color-border); }
+  .sec-head{ display:flex; align-items:baseline; gap:18px; margin-bottom:8px; }
+  .sec-num{ font-family:var(--font-mono); font-size:13px; color:var(--re-lagoon-500); letter-spacing:.1em; }
+  .sec-head h2{ font-family:var(--font-display); font-weight:500; font-size:30px; letter-spacing:-0.01em; margin:0; color:var(--re-ponderosa); }
+  .sec-desc{ font-size:16px; line-height:1.6; color:var(--color-fg-2); max-width:70ch; margin:0 0 34px; }
+  .sec-desc + .sec-desc{ margin-top:-22px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media(max-width:860px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+
+  .card{ background:var(--re-pure-white); border:1px solid var(--color-border); border-radius:12px; padding:26px; }
+  .card h3{ font-family:var(--font-body); font-weight:600; font-size:17px; margin:0 0 4px; color:var(--re-ponderosa); }
+  .card .cap{ font-size:13.5px; line-height:1.55; color:var(--color-fg-3); margin:0 0 18px; }
+  .tag{
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:10.5px;
+    letter-spacing:.1em; text-transform:uppercase; padding:4px 8px; border-radius:4px; border:1px solid var(--color-border-strong); color:var(--color-fg-3);
+  }
+  .tag.rec{ color:var(--re-lagoon-600); border-color:var(--re-lagoon-300); background:var(--re-lagoon-50); }
+
+  /* ---- swatches ---- */
+  .swrow{ display:flex; flex-wrap:wrap; gap:14px; }
+  .sw{ width:96px; }
+  .sw .chip{ height:64px; border-radius:8px; border:1px solid rgba(38,56,58,0.10); }
+  .sw .nm{ font-size:12.5px; font-weight:600; margin-top:8px; color:var(--re-ponderosa); }
+  .sw .hex{ font-family:var(--font-mono); font-size:11px; color:var(--color-fg-3); }
+  .sw .use{ font-size:11px; color:var(--color-fg-muted); line-height:1.35; margin-top:2px; }
+
+  /* ---- palette direction blocks ---- */
+  .dir{ border:1px solid var(--color-border); border-radius:12px; overflow:hidden; }
+  .dir .preview{ height:190px; position:relative; display:flex; align-items:flex-end; padding:20px; }
+  .dir .preview .demo-stat{ font-family:var(--font-display); font-weight:400; font-size:42px; letter-spacing:-0.02em; line-height:1; }
+  .dir .preview .demo-stat small{ display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-top:10px; font-weight:400; }
+  .dir .preview .pin{ position:absolute; top:16px; left:16px; }
+  .dir .body{ padding:18px 20px 20px; background:var(--re-pure-white); }
+  .dir .body h3{ margin:0 0 4px; font-size:16px; font-weight:600; color:var(--re-ponderosa); }
+  .dir .body p{ margin:0; font-size:13.5px; line-height:1.55; color:var(--color-fg-3); }
+
+  .pal-light{ background:var(--re-dusty-white); color:var(--re-ponderosa); }
+  .pal-light .demo-stat small{ color:var(--re-lagoon-600); }
+  .pal-dark{ background:var(--re-ponderosa); color:var(--re-dusty-white); }
+  .pal-dark .demo-stat small{ color:var(--re-lagoon-200); }
+  .pal-split{ background:linear-gradient(105deg,var(--re-dusty-white) 0 52%, var(--map-base) 52% 100%); color:var(--re-ponderosa); }
+  .pal-split .demo-stat{ color:var(--re-ponderosa); }
+  .pal-split .demo-stat small{ color:var(--re-lagoon-600); }
+
+  .minipin{ font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:3px 7px; border-radius:4px; }
+  .minipin.l{ background:rgba(38,56,58,0.06); color:var(--re-ponderosa); border:1px solid rgba(38,56,58,0.12); }
+  .minipin.d{ background:rgba(239,235,234,0.10); color:var(--re-dusty-white); border:1px solid rgba(239,235,234,0.16); }
+
+  /* ---- ramp ---- */
+  .ramp{ border:1px solid var(--color-border); border-radius:12px; overflow:hidden; background:var(--re-pure-white); }
+  .ramp .topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; }
+  .ramp .topbar h3{ margin:0; font-size:16px; font-weight:600; color:var(--re-ponderosa); }
+  .ramp .stops{ display:flex; height:44px; }
+  .ramp .stops i{ flex:1; }
+  .ramp .axis{ display:flex; justify-content:space-between; padding:8px 0 0; }
+  .ramp .axis span{ flex:1; text-align:center; font-family:var(--font-mono); font-size:11px; color:var(--color-fg-3); }
+  .ramp .axis span:first-child{ text-align:left; }
+  .ramp .axis span:last-child{ text-align:right; }
+  .ramp .rampbody{ padding:16px 20px 20px; }
+  .ramp .note{ font-size:13px; line-height:1.5; color:var(--color-fg-3); margin:14px 0 0; }
+  .onmap{ margin-top:14px; background:var(--map-base); border-radius:8px; padding:14px; display:flex; gap:8px; align-items:center; }
+  .onmap i{ width:40px; height:24px; border-radius:3px; }
+  .onmap .cap{ font-family:var(--font-mono); font-size:11px; color:rgba(239,235,234,0.55); letter-spacing:.04em; }
+
+  /* ---- type specimen ---- */
+  .spec{ background:var(--re-pure-white); border:1px solid var(--color-border); border-radius:12px; padding:34px; }
+  .spec .row{ padding:20px 0; border-bottom:1px solid var(--color-border); }
+  .spec .row:last-child{ border-bottom:0; padding-bottom:0; }
+  .spec .row:first-child{ padding-top:0; }
+  .spec .role{ font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-fg-muted); margin-bottom:12px; }
+  .t-display{ font-family:var(--font-display); font-weight:400; font-size:clamp(36px,4.4vw,56px); letter-spacing:-0.02em; line-height:1.04; color:var(--re-ponderosa); margin:0; }
+  .t-display b{ font-weight:600; }
+  .t-h{ font-family:var(--font-display); font-weight:500; font-size:26px; letter-spacing:-0.01em; color:var(--re-ponderosa); margin:0; }
+  .t-body{ font-size:16px; line-height:1.65; color:var(--color-fg-2); margin:0; max-width:66ch; }
+  .t-mono{ font-family:var(--font-mono); font-size:14px; color:var(--re-lagoon-600); margin:0; letter-spacing:.02em; }
+  .t-stat{ font-family:var(--font-display); font-weight:400; font-size:clamp(56px,8vw,104px); letter-spacing:-0.03em; line-height:0.92; color:var(--re-ponderosa); margin:0; }
+  .t-stat span{ color:var(--re-lagoon); }
+
+  /* ---- live vs proposed ---- */
+  .lvp{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media(max-width:860px){ .lvp{ grid-template-columns:1fr; } }
+  .panelmock{ background:var(--map-base); border-radius:12px; padding:0; overflow:hidden; border:1px solid rgba(239,235,234,0.10); }
+  .panelmock .mhead{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid rgba(239,235,234,0.08); }
+  .panelmock .mhead .mt{ font-family:var(--font-body); font-weight:600; font-size:14px; color:var(--re-dusty-white); }
+  .panelmock .mbody{ padding:18px; }
+  .stamp{ font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:6px; }
+  .stamp.real{ color:#9FE6C5; background:rgba(63,143,110,0.16); border:1px solid rgba(63,143,110,0.4); }
+  .stamp.real::before{ content:""; width:6px; height:6px; border-radius:50%; background:#5FD3A0; }
+  .stamp.prop{ color:var(--re-tangerine); background:rgba(252,187,21,0.10); border:1px dashed rgba(252,187,21,0.55); }
+  .stamp.prop::before{ content:""; width:6px; height:6px; border-radius:50%; background:transparent; border:1px solid var(--re-tangerine); }
+
+  .kv{ display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid rgba(239,235,234,0.07); }
+  .kv:last-child{ border-bottom:0; }
+  .kv .k{ font-size:13px; color:rgba(239,235,234,0.6); }
+  .kv .v{ font-family:var(--font-mono); font-size:14px; color:var(--re-dusty-white); }
+  .kv .v.lag{ color:var(--re-lagoon-200); }
+  .ghost .kv .v{ color:rgba(252,187,21,0.85); }
+  .ghost .editable{ font-family:var(--font-mono); font-size:13px; color:var(--re-tangerine); border-bottom:1px dashed rgba(252,187,21,0.5); padding-bottom:1px; }
+
+  /* mini field swatch demo inside live/proposed */
+  .fielddemo{ display:flex; gap:10px; margin-top:14px; }
+  .fielddemo .fd{ flex:1; height:54px; border-radius:6px; display:flex; align-items:flex-end; padding:7px; }
+  .fielddemo .fd .fl{ font-family:var(--font-mono); font-size:9.5px; color:rgba(255,255,255,0.8); letter-spacing:.04em; }
+  .fd.solid{ background:var(--f4); border:1px solid rgba(255,255,255,0.25); }
+  .fd.solid2{ background:var(--f2); border:1px solid rgba(255,255,255,0.2); }
+  .fd.prop{ background:repeating-linear-gradient(45deg, rgba(252,187,21,0.16) 0 6px, rgba(252,187,21,0.04) 6px 12px); border:1px dashed rgba(252,187,21,0.6); }
+  .fd.prop2{ background:repeating-linear-gradient(45deg, rgba(239,235,234,0.10) 0 6px, rgba(239,235,234,0.02) 6px 12px); border:1px dashed rgba(239,235,234,0.32); }
+
+  /* ---- map sample (hero of the board) ---- */
+  .mapsample{ position:relative; border-radius:14px; overflow:hidden; border:1px solid rgba(239,235,234,0.12); background:var(--map-base); }
+  .mapsample svg{ display:block; width:100%; height:auto; }
+  .mapsample .ov{ position:absolute; }
+  .legendchip{
+    position:absolute; left:18px; bottom:18px; background:rgba(18,26,25,0.86); backdrop-filter:blur(6px);
+    border:1px solid rgba(239,235,234,0.14); border-radius:8px; padding:12px 14px; min-width:172px;
+  }
+  .legendchip .lt{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:rgba(239,235,234,0.55); margin-bottom:9px; }
+  .legendchip .lbar{ height:8px; border-radius:4px; background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3),var(--f4),var(--f5),var(--f6)); }
+  .legendchip .lax{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:9.5px; color:rgba(239,235,234,0.5); margin-top:5px; }
+  .rpbar{
+    position:absolute; top:18px; left:50%; transform:translateX(-50%); display:flex; gap:0;
+    background:rgba(18,26,25,0.86); backdrop-filter:blur(6px); border:1px solid rgba(239,235,234,0.14); border-radius:8px; padding:4px; overflow:hidden;
+  }
+  .rpbar button{ font-family:var(--font-mono); font-size:12px; color:rgba(239,235,234,0.62); background:transparent; border:0; padding:7px 11px; border-radius:5px; cursor:default; letter-spacing:.02em; }
+  .rpbar button.on{ background:var(--re-lagoon); color:#fff; }
+  .provchip{
+    position:absolute; right:18px; top:18px; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em;
+    color:#9FE6C5; background:rgba(63,143,110,0.16); border:1px solid rgba(63,143,110,0.4); border-radius:6px; padding:6px 9px; display:flex; align-items:center; gap:6px;
+  }
+  .provchip::before{ content:""; width:6px;height:6px;border-radius:50%; background:#5FD3A0; }
+
+  /* ---- buttons / atoms ---- */
+  .btnrow{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+  .btn{
+    font-family:var(--font-body); font-size:14px; font-weight:500; display:inline-flex; align-items:center; gap:10px;
+    padding:12px 18px; border-radius:6px; cursor:default; border:1px solid transparent; letter-spacing:.01em;
+  }
+  .btn .ar{ font-size:15px; }
+  .btn-primary{ background:var(--re-lagoon); color:#fff; }
+  .btn-outline{ background:transparent; border-color:var(--color-border-strong); color:var(--re-ponderosa); }
+  .btn-ghost{ background:transparent; border:1px dashed rgba(38,56,58,0.3); color:var(--color-fg-3); }
+  .btn-dark{ background:transparent; border:1px solid rgba(239,235,234,0.22); color:var(--re-dusty-white); }
+
+  .iconrow{ display:flex; flex-wrap:wrap; gap:10px; }
+  .iconrow .ic{ width:44px; height:44px; border:1px solid var(--color-border); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--re-ponderosa); background:var(--re-pure-white); }
+  .iconrow svg{ width:22px; height:22px; }
+
+  .principle{ display:flex; gap:14px; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--color-border); }
+  .principle:last-child{ border-bottom:0; }
+  .principle .num{ font-family:var(--font-mono); font-size:12px; color:var(--re-lagoon-500); padding-top:2px; min-width:26px; }
+  .principle p{ margin:0; font-size:15px; line-height:1.6; color:var(--color-fg-2); }
+  .principle p b{ color:var(--re-ponderosa); font-weight:600; }
+
+  .footer{ padding:48px 0 80px; }
+  .footer p{ font-size:14px; color:var(--color-fg-3); margin:0; }
+
+  /* ---- SHARP EDGES: no rounded corners anywhere (Fathom-style hairlines) ---- */
+  .card,.tag,.dir,.dir .preview,.ramp,.ramp .stops,.ramp .stops i,.spec,.panelmock,
+  .legendchip,.legendchip .lbar,.rpbar,.rpbar button,.mapsample,.stamp,.iconrow .ic,
+  .sw .chip,.fielddemo .fd,.onmap,.onmap i,.btn,.minipin,.provchip,.provchip::before,
+  .stamp.real::before,.stamp.prop::before{ border-radius:0 !important; }
+
+  /* in-situ ramp swatches now sit on a light ground */
+  .onmap{ background:var(--re-dust-200); }
+  .onmap i{ border:1px solid rgba(38,56,58,0.2); }
+  .onmap .cap{ color:var(--color-fg-3); }
+
+  /* light-theme map chrome (default) */
+  .mapsample.light{ background:#E4E1DE; border:1px solid var(--color-border-strong); }
+  .mapsample.light .rpbar{ background:var(--re-pure-white); border:1px solid var(--color-border-strong); backdrop-filter:none; }
+  .mapsample.light .rpbar button{ color:var(--color-fg-2); }
+  .mapsample.light .rpbar button.on{ background:var(--re-lagoon); color:#fff; }
+  .mapsample.light .provchip{ background:rgba(63,143,110,0.10); border:1px solid rgba(63,143,110,0.45); color:#2C6B50; }
+  .mapsample.light .provchip::before{ background:#3F8F6E; }
+  .mapsample.light .legendchip{ background:var(--re-pure-white); border:1px solid var(--color-border-strong); backdrop-filter:none; }
+  .mapsample.light .legendchip .lt{ color:var(--color-fg-3); }
+  .mapsample.light .legendchip .lax{ color:var(--color-fg-muted); }
+</style>
+</head>
+<body>
+
+<!-- ============ MASTHEAD ============ -->
+<div class="wrap masthead">
+  <p class="kicker">Design language · Working draft · v1</p>
+  <h1>Moldova agricultural flood-risk map</h1>
+  <p class="lede">Before wireframes, a proposed visual system. The brief: <b>read as institutional, not as a tech demo.</b> Closer to a national mapping agency or a bank's risk portal than a SaaS landing page — but precise and modern enough to feel current. Built entirely on Radiant Earth's brand foundations (Vert Grotesk Display, Neue Swiss, Berkeley Mono; Ponderosa / Lagoon / Tangerine), adapted for a data instrument. Fathom's restraint — hairline rules, sharp corners, monospace labels, no decoration — is the reference for tone, not a template to copy.</p>
+  <div class="meta-row">
+    <div class="m"><span class="lbl">Subject</span><span class="val">Ag land · 1-in-N floodplain exposure</span></div>
+    <div class="m"><span class="lbl">Real data</span><span class="val">JRC 90m fluvial · FTW field boundaries</span></div>
+    <div class="m"><span class="lbl">Primary language</span><span class="val">Română (EN to follow)</span></div>
+    <div class="m"><span class="lbl">Stack</span><span class="val">Static · MapLibre + deck.gl</span></div>
+  </div>
+</div>
+
+<!-- ============ 01 THEME ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Theme — light by default</h2></div>
+  <p class="sec-desc">Settled: the interface <b>defaults to light</b> — a clean, institutional register that reads like a public registry or a bank's risk report — with <b>dark mode as an option</b>, not a separate design. The map keeps a calm light basemap by default and lets the fields carry the colour. Throughout: <b>straight hairline rules and sharp corners</b> — zero rounded "app" buttons. Trust first, instrument second.</p>
+  <div class="grid-2">
+    <div class="dir">
+      <div class="preview pal-light">
+        <span class="pin minipin l">Default</span>
+        <div class="demo-stat">38%<small>în zona inundabilă</small></div>
+      </div>
+      <div class="body"><h3>Light — default <span class="tag rec" style="margin-left:6px">Locked</span></h3><p>Dusty-white panels, Ponderosa text, Lagoon as the single interactive colour, light basemap. Maximum trust; best for officials and non-experts.</p></div>
+    </div>
+    <div class="dir">
+      <div class="preview pal-dark">
+        <span class="pin minipin d">Option</span>
+        <div class="demo-stat">38%<small>în zona inundabilă</small></div>
+      </div>
+      <div class="body"><h3>Dark — option</h3><p>The same layout in Ponderosa for low-light or presentation use, paired with a satellite or dark basemap. A toggle, nothing more.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 PALETTE ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Palette — chrome is brand, data is its own language</h2></div>
+  <p class="sec-desc">A hard rule that keeps the map honest: <b>Lagoon green is the UI / interaction colour</b> (selection, active RP, links, buttons). It never appears in the flood ramp. <b>Flood exposure gets its own blue ramp.</b> <b>Tangerine is reserved</b> — one job only: it marks <i>proposed</i> capability (see §05). Keeping these three vocabularies separate is what lets a viewer always know whether they're looking at the interface, the evidence, or the pitch.</p>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Chrome &amp; surface</h3>
+      <p class="cap">Drawn from the brand tokens. Ponderosa and a slightly cooler/darker map base anchor the dark; dusty white and pure white for panels.</p>
+      <div class="swrow">
+        <div class="sw"><div class="chip" style="background:#121A19"></div><div class="nm">Map base</div><div class="hex">#121A19</div><div class="use">Cartographic ground</div></div>
+        <div class="sw"><div class="chip" style="background:var(--re-ponderosa)"></div><div class="nm">Ponderosa</div><div class="hex">#26383A</div><div class="use">Dark chrome, text</div></div>
+        <div class="sw"><div class="chip" style="background:var(--re-lagoon)"></div><div class="nm">Lagoon</div><div class="hex">#469695</div><div class="use">Interaction only</div></div>
+        <div class="sw"><div class="chip" style="background:var(--re-dusty-white)"></div><div class="nm">Dusty white</div><div class="hex">#EFEBEA</div><div class="use">Light surface</div></div>
+        <div class="sw"><div class="chip" style="background:var(--re-tangerine)"></div><div class="nm">Tangerine</div><div class="hex">#FCBB15</div><div class="use">"Proposed" only</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Status &amp; provenance</h3>
+      <p class="cap">A muted functional set for the data-provenance surface — never loud, sits inside the dark chrome.</p>
+      <div class="swrow">
+        <div class="sw"><div class="chip" style="background:var(--color-success)"></div><div class="nm">Real / live</div><div class="hex">#3F8F6E</div><div class="use">"Date reale"</div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-warning)"></div><div class="nm">Caveat</div><div class="hex">#C98A1A</div><div class="use">90m limits</div></div>
+        <div class="sw"><div class="chip" style="background:var(--re-lagoon-200)"></div><div class="nm">Accent (dark)</div><div class="hex">#9BC3C2</div><div class="use">Lagoon on dark</div></div>
+        <div class="sw"><div class="chip" style="background:#2D4244"></div><div class="nm">Raised dark</div><div class="hex">#2D4244</div><div class="use">Cards on dark</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 FLOOD RAMP ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">03</span><h2>The flood-exposure ramp — the single most important colour decision</h2></div>
+  <p class="sec-desc">This ramp is the product. Two readings of "exposure" are possible and they imply different ramps — we should pick one (or support both as a toggle). Both shown on the dark map base they'll actually sit on.</p>
+  <div class="grid-2">
+    <div class="ramp">
+      <div class="topbar"><h3>Hydro — sequential blue</h3><span class="tag rec">Locked</span></div>
+      <div class="stops">
+        <i style="background:var(--f1)"></i><i style="background:var(--f2)"></i><i style="background:var(--f3)"></i><i style="background:var(--f4)"></i><i style="background:var(--f5)"></i><i style="background:var(--f6)"></i>
+      </div>
+      <div class="rampbody">
+        <div class="axis"><span>shallow</span><span style="text-align:right">deep</span></div>
+        <p class="note">Reads "<b>depth of inundation at the selected return period</b>." Water = blue is instantly legible to anyone; single-hue is colour-blind-safe and prints cleanly in reports. Calm, scientific, government-grade.</p>
+        <div class="onmap">
+          <i style="background:var(--f2)"></i><i style="background:var(--f4)"></i><i style="background:var(--f6)"></i>
+          <span class="cap">blue fields on a light basemap — hairline strokes keep parcels crisp</span>
+        </div>
+      </div>
+    </div>
+    <div class="ramp">
+      <div class="topbar"><h3>Severity — diverging to tangerine</h3><span class="tag">Parked</span></div>
+      <div class="stops">
+        <i style="background:var(--s1)"></i><i style="background:var(--s2)"></i><i style="background:var(--s3)"></i><i style="background:var(--s4)"></i><i style="background:var(--s5)"></i><i style="background:var(--s6)"></i>
+      </div>
+      <div class="rampbody">
+        <div class="axis"><span>floods rarely</span><span style="text-align:right">floods often</span></div>
+        <p class="note">Reads "<b>how frequently a field floods</b>" — worst land (inundated even at RP10) glows in brand tangerine. More of an insurance/alarm register; ties to the brand accent. Trade-off: less intuitive, harder for colour-blind users.</p>
+        <div class="onmap">
+          <i style="background:var(--s2)"></i><i style="background:var(--s4)"></i><i style="background:var(--s6)"></i>
+          <span class="cap">tangerine = act-now parcels</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 MAP SAMPLE ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">04</span><h2>What it feels like in situ</h2></div>
+  <p class="sec-desc">A schematic of the map surface — default light theme, Hydro ramp. Fields are the only geometry, styled by exposure, on a calm light basemap with a river. Chrome floats with hairline borders and sharp corners: RP selector top-centre, provenance top-right, legend bottom-left. Placeholder geometry; real fields come from FTW boundaries.</p>
+  <div class="mapsample light">
+    <svg viewBox="0 0 1120 470" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Schematic flood exposure map">
+      <defs>
+        <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+          <path d="M34 0H0V34" fill="none" stroke="rgba(38,56,58,0.06)" stroke-width="1"/>
+        </pattern>
+        <linearGradient id="river" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#1C4189"/><stop offset="1" stop-color="#2E68B5"/>
+        </linearGradient>
+      </defs>
+      <rect width="1120" height="470" fill="#E4E1DE"/>
+      <rect width="1120" height="470" fill="url(#grid)"/>
+      <!-- river -->
+      <path d="M-20 70 C 220 130, 320 250, 560 270 S 980 320, 1140 290 L 1140 350 C 980 380, 760 350, 560 330 S 240 200, -20 140 Z" fill="url(#river)" opacity="0.85"/>
+      <!-- fields: nearer river = higher exposure (deeper blue) -->
+      <g stroke="rgba(38,56,58,0.28)" stroke-width="1">
+        <polygon points="120,150 240,140 250,210 130,225" fill="#5E97D1"/>
+        <polygon points="255,138 360,132 372,200 252,208" fill="#2E68B5"/>
+        <polygon points="378,130 470,128 478,196 374,200" fill="#1C4189"/>
+        <polygon points="150,232 250,218 262,290 158,300" fill="#2E68B5"/>
+        <polygon points="268,214 372,206 384,280 266,288" fill="#0E2356"/>
+        <polygon points="392,202 486,198 496,272 388,278" fill="#1C4189"/>
+        <polygon points="505,200 612,202 618,276 500,272" fill="#2E68B5"/>
+        <polygon points="628,210 740,216 742,288 622,282" fill="#5E97D1"/>
+        <polygon points="760,222 864,232 862,300 752,294" fill="#9BC4E6"/>
+        <polygon points="884,236 985,250 980,318 876,306" fill="#5E97D1"/>
+        <polygon points="120,318 226,308 236,372 126,384" fill="#9BC4E6"/>
+        <polygon points="248,306 356,298 368,360 256,370" fill="#5E97D1"/>
+        <polygon points="392,300 500,296 508,358 396,362" fill="#2E68B5"/>
+        <polygon points="640,120 742,118 748,180 642,184" fill="#CFE3F2"/>
+        <polygon points="760,118 858,120 860,182 758,184" fill="#9BC4E6"/>
+        <polygon points="876,124 974,130 970,190 872,186" fill="#CFE3F2"/>
+        <polygon points="528,360 636,360 642,420 522,418" fill="#5E97D1"/>
+        <polygon points="660,364 768,370 770,426 654,422" fill="#9BC4E6"/>
+      </g>
+    </svg>
+    <div class="rpbar">
+      <button>RP10</button><button>RP20</button><button>RP50</button><button class="on">RP100</button><button>RP200</button><button>RP500</button>
+    </div>
+    <div class="provchip">DATE REALE · JRC 90&nbsp;M</div>
+    <div class="legendchip">
+      <div class="lt">Expunere · adâncime</div>
+      <div class="lbar"></div>
+      <div class="lax"><span>mică</span><span>mare</span></div>
+    </div>
+  </div>
+  <p class="sec-desc" style="margin-top:16px;margin-bottom:0;font-size:14px;color:var(--color-fg-3)">Basemap: <b style="color:var(--re-ponderosa)">Carto Positron</b> (light, default). Dark mode uses <b style="color:var(--re-ponderosa)">Positron Dark</b>; a third toggle offers <b style="color:var(--re-ponderosa)">Esri World Imagery</b> satellite. The same blue ramp and hairline chrome carry across all three.</p>
+</section>
+
+<!-- ============ 05 LIVE VS PROPOSED ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Live vs. proposed — the system that lets the demo argue for its own replacement</h2></div>
+  <p class="sec-desc">Your core principle, made into a rule. <b>Live = solid.</b> Full-saturation fill, solid 1px stroke, a green <span style="font-family:var(--font-mono);font-size:12px">DATE REALE</span> stamp. <b>Proposed = ghosted.</b> Diagonal hatch, dashed tangerine stroke, a <span style="font-family:var(--font-mono);font-size:12px;color:var(--color-warning)">PROPUS</span> stamp, and editable values shown in tangerine mono. A viewer can always tell evidence from pitch at a glance — no caption required.</p>
+  <div class="lvp">
+    <div class="panelmock">
+      <div class="mhead"><span class="mt">Expunere · unitate administrativă</span><span class="stamp real">Date reale</span></div>
+      <div class="mbody">
+        <div class="kv"><span class="k">Suprafață agricolă totală</span><span class="v">14 280 ha</span></div>
+        <div class="kv"><span class="k">Expusă la RP100</span><span class="v lag">3 612 ha</span></div>
+        <div class="kv"><span class="k">Câmpuri afectate</span><span class="v">1 047</span></div>
+        <div class="kv"><span class="k">Pondere teren arabil inundabil</span><span class="v lag">25,3%</span></div>
+        <div class="fielddemo">
+          <div class="fd solid2"><span class="fl">RP100 · 0.4m</span></div>
+          <div class="fd solid"><span class="fl">RP100 · 1.2m</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panelmock ghost">
+      <div class="mhead"><span class="mt">Pierdere anuală estimată (EAL)</span><span class="stamp prop">Propus</span></div>
+      <div class="mbody">
+        <div class="kv"><span class="k">Valoare expusă</span><span class="editable">€ 420 / ha ✎</span></div>
+        <div class="kv"><span class="k">Curbă de daune</span><span class="editable">JRC depth-damage ▾</span></div>
+        <div class="kv"><span class="k">EAL estimat</span><span class="v">€ 1,9 M / an</span></div>
+        <div class="kv"><span class="k" style="color:var(--re-tangerine);opacity:.85">coeficienți substituibili — metodă reală</span><span></span></div>
+        <div class="fielddemo">
+          <div class="fd prop"><span class="fl">EAL slot</span></div>
+          <div class="fd prop2"><span class="fl">pluvial — indisponibil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 TYPE ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Type — tested in Romanian</h2></div>
+  <p class="sec-desc">Vert Grotesk Display for the headline stat and titles; Neue Swiss for everything readable; Berkeley Mono for data, units, labels and provenance — the mono is doing a lot of the "instrument" work. Diacritics (ă â î ș ț) shown live below.</p>
+  <div class="spec">
+    <div class="row">
+      <div class="role">Headline stat — Vert Grotesk Display · the one big number on load</div>
+      <p class="t-stat"><span>38%</span></p>
+      <p class="t-body" style="margin-top:14px">din terenul agricol cartografiat se află în zona inundabilă de 1-din-100 ani</p>
+    </div>
+    <div class="row">
+      <div class="role">Display / section title — Vert Grotesk Display</div>
+      <p class="t-display">Expunerea terenului <b>agricol</b> la inundații în Republica Moldova</p>
+    </div>
+    <div class="row">
+      <div class="role">Subhead — Vert Grotesk Display Medium</div>
+      <p class="t-h">Selectează o perioadă de revenire</p>
+    </div>
+    <div class="row">
+      <div class="role">Body — Neue Swiss</div>
+      <p class="t-body">Datele reflectă inundațiile fluviale modelate de Centrul Comun de Cercetare (JRC) la o rezoluție de 90 de metri. Adâncimile afișate sunt indicative la această rezoluție și nu includ inundațiile pluviale.</p>
+    </div>
+    <div class="row">
+      <div class="role">Mono — Berkeley Mono · data, units, provenance, labels</div>
+      <p class="t-mono">RP100 · 3 612 ha · 25,3% · JRC 90M · adâncime 1,2 m · raionul Cahul</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 ATOMS ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Interface atoms</h2></div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Buttons</h3>
+      <p class="cap">Primary in Lagoon; outline and arrow-link for secondary; a dashed ghost reserved for proposed/disabled capability.</p>
+      <div class="btnrow">
+        <span class="btn btn-primary">Explorează harta <span class="ar">→</span></span>
+        <span class="btn btn-outline">Încarcă portofoliu <span class="ar">→</span></span>
+        <span class="btn btn-ghost">Strat pluvial — indisponibil</span>
+      </div>
+      <div class="btnrow" style="margin-top:16px; background:var(--map-base); padding:16px; border-radius:8px;">
+        <span class="btn btn-dark">Comută fundal satelitar <span class="ar">→</span></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Iconography — Lucide, 1.75px stroke</h3>
+      <p class="cap">Line icons only, inheriting currentColor. No filled or coloured icons as decoration. A small functional set covers the whole tool.</p>
+      <div class="iconrow">
+        <span class="ic" title="layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></span>
+        <span class="ic" title="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v16M15 6v16"/></svg></span>
+        <span class="ic" title="droplet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 4 12 2C11.5 4 10 6 8 7.5S5 13 5 15a7 7 0 0 0 7 7Z"/></svg></span>
+        <span class="ic" title="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span>
+        <span class="ic" title="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>
+        <span class="ic" title="grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="ic" title="building"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+      </div>
+      <p class="cap" style="margin:22px 0 10px"><b style="color:var(--re-ponderosa);font-weight:600">For “fields” — chosen:</b> the crop / sprout mark (far right, highlighted). Warmer and more legible at small sizes than the cadastral marks, and it reads instantly as agriculture.</p>
+      <div class="iconrow">
+        <span class="ic" title="land parcel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 8 6-3-6-3v10"/><path d="m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L17 12"/><path d="m6.49 12.85 11.02 6.3"/><path d="M17.51 12.85 6.5 19.15"/></svg></span>
+        <span class="ic" title="subdivided fields"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5 21 8 20 20 4 18Z"/><path d="M3.5 11.5 20.6 14"/><path d="M11 6 10 19"/></svg></span>
+        <span class="ic" title="crop / sprout — chosen" style="border-color:var(--re-lagoon-400);box-shadow:inset 0 0 0 1px var(--re-lagoon-200);color:var(--re-lagoon-600)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8Z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2Z"/></svg></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 PRINCIPLES ============ -->
+<section class="wrap">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Principles to hold through the wireframes</h2></div>
+  <div style="max-width:78ch">
+    <div class="principle"><span class="num">01</span><p><b>Three vocabularies, never blurred.</b> Lagoon = interface. Blue ramp = evidence. Tangerine = proposal. If a colour is doing two jobs, it's wrong.</p></div>
+    <div class="principle"><span class="num">02</span><p><b>Solid is true, ghosted is proposed.</b> The hatch/dash + stamp pair appears on every stub — map layers, panels, toggles — so the eye learns it once.</p></div>
+    <div class="principle"><span class="num">03</span><p><b>Provenance is always on screen, never apologetic.</b> "Date reale · JRC 90m" sits in the chrome at all times; limits stated plainly, not hidden in a tooltip.</p></div>
+    <div class="principle"><span class="num">04</span><p><b>One big number.</b> The headline stat earns the largest type on the page. Everything else is quieter than it.</p></div>
+    <div class="principle"><span class="num">05</span><p><b>The map is the hero; chrome recedes.</b> Dark ground, hairline rules, mono labels. No gradients on chrome, no shadows-as-decoration, no rounded-pill SaaS look.</p></div>
+  </div>
+</section>
+
+<div class="wrap footer">
+  <p>Radiant Earth foundations · Vert Grotesk Display / Neue Swiss / Berkeley Mono · Working draft for review — not final. Schematic geometry and figures are placeholders.</p>
+</div>
+
+</body>
+</html>

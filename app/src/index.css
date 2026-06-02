@@ -1,0 +1,279 @@
+/* =========================================================
+   Moldova Ag Flood-Risk Map — App entrypoint stylesheet.
+
+   Load order (CSS spec requires @import first):
+     1. tokens.css — designer-authored vars + @font-face
+     2. tailwindcss — utility framework base
+     3. @custom-variant dark — class-based dark mode
+     4. @theme — maps design tokens into Tailwind utilities
+     5. shadcn baseline (--background / --foreground / etc.)
+     6. base + components layers (no-radius lock, hatch/dash)
+   ========================================================= */
+
+@import "./styles/tokens.css";
+@import "tailwindcss";
+
+/* shadcn animation helpers (radix + tailwind v4 transitions) */
+@import "tw-animate-css";
+
+/* =========================================================
+   Dark mode via .dark class on <html>.
+   Toggled by the basemap selector (dark basemap → dark chrome).
+   ========================================================= */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================
+   Theme — maps design tokens to Tailwind utility class generators.
+   Anything declared here becomes available as:
+     bg-{name}, text-{name}, border-{name}, etc.
+   ========================================================= */
+@theme {
+  /* === Brand colors === */
+  --color-lagoon:           var(--re-lagoon);
+  --color-lagoon-hover:     var(--re-lagoon-500);
+  --color-lagoon-pressed:   var(--re-lagoon-600);
+  --color-lagoon-50:        var(--re-lagoon-50);
+  --color-lagoon-100:       var(--re-lagoon-100);
+  --color-lagoon-200:       var(--re-lagoon-200);
+  --color-lagoon-300:       var(--re-lagoon-300);
+  --color-lagoon-400:       var(--re-lagoon-400);
+  --color-lagoon-500:       var(--re-lagoon-500);
+  --color-lagoon-600:       var(--re-lagoon-600);
+  --color-lagoon-700:       var(--re-lagoon-700);
+  --color-lagoon-800:       var(--re-lagoon-800);
+  --color-lagoon-900:       var(--re-lagoon-900);
+
+  --color-ponderosa:        var(--re-ponderosa);
+  --color-dust:             var(--re-dusty-white);
+  --color-dust-50:          var(--re-dust-50);
+  --color-dust-100:         var(--re-dust-100);
+  --color-dust-200:         var(--re-dust-200);
+  --color-dust-300:         var(--re-dust-300);
+  --color-dust-400:         var(--re-dust-400);
+
+  /* === The live-vs-proposed register === */
+  --color-real:             var(--color-success);    /* DATE REALE green */
+  --color-proposed:         var(--re-tangerine);     /* PROPUS tangerine */
+
+  /* === Flood ramp (Hydro, locked) === */
+  --color-flood-1:          var(--c-flood-1);
+  --color-flood-2:          var(--c-flood-2);
+  --color-flood-3:          var(--c-flood-3);
+  --color-flood-4:          var(--c-flood-4);
+  --color-flood-5:          var(--c-flood-5);
+  --color-flood-6:          var(--c-flood-6);
+
+  /* === Semantic surfaces (utility shortcuts) === */
+  --color-canvas:           var(--re-dusty-white);
+  --color-surface:          var(--re-pure-white);
+  --color-ink:              var(--re-ponderosa);
+  --color-ink-2:            #4A5C5E;
+  --color-ink-3:            #6E7E80;
+  --color-ink-muted:        #93A0A1;
+  --color-hairline:         rgba(38, 56, 58, 0.12);
+  --color-hairline-strong:  rgba(38, 56, 58, 0.24);
+  --color-field-stroke:     var(--c-field-stroke);
+
+  /* === Fonts === */
+  --font-sans:              var(--font-body);
+  --font-display:           "Vert Grotesk Display", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-mono:              "Berkeley Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* === Radii — ALL ZERO (spec: no rounded corners anywhere) === */
+  --radius:                 0px;
+  --radius-xs:              0px;
+  --radius-sm:              0px;
+  --radius-md:              0px;
+  --radius-lg:              0px;
+  --radius-xl:              0px;
+  --radius-2xl:             0px;
+  --radius-3xl:             0px;
+  --radius-4xl:             0px;
+
+  /* === Motion === */
+  --default-transition-duration:       200ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-out:               cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-in-out:            cubic-bezier(0.6, 0, 0.2, 1);
+
+  /* === Tracking === */
+  --tracking-tight:         -0.02em;
+  --tracking-snug:          -0.01em;
+  --tracking-normal:        0;
+  --tracking-wide:          0.04em;
+  --tracking-eyebrow:       0.14em;
+}
+
+/* =========================================================
+   shadcn baseline tokens (light) — mapped to brand.
+   shadcn components reference these via var(--background) etc.
+   ========================================================= */
+:root {
+  --background:               var(--re-dusty-white);
+  --foreground:               var(--re-ponderosa);
+  --card:                     var(--re-pure-white);
+  --card-foreground:          var(--re-ponderosa);
+  --popover:                  var(--re-pure-white);
+  --popover-foreground:       var(--re-ponderosa);
+  --primary:                  var(--re-lagoon);
+  --primary-foreground:       var(--re-pure-white);
+  --secondary:                var(--re-dust-100);
+  --secondary-foreground:     var(--re-ponderosa);
+  --muted:                    var(--re-dust-200);
+  --muted-foreground:         #6E7E80;
+  --accent:                   var(--re-lagoon-100);
+  --accent-foreground:        var(--re-ponderosa);
+  --destructive:              var(--color-danger);
+  --destructive-foreground:   var(--re-pure-white);
+  --border:                   rgba(38, 56, 58, 0.12);
+  --input:                    rgba(38, 56, 58, 0.12);
+  --ring:                     var(--re-lagoon);
+}
+
+.dark {
+  --background:               var(--re-ponderosa);
+  --foreground:               var(--re-dusty-white);
+  --card:                     #2D4244;
+  --card-foreground:          var(--re-dusty-white);
+  --popover:                  #2D4244;
+  --popover-foreground:       var(--re-dusty-white);
+  --primary:                  var(--re-lagoon-200);
+  --primary-foreground:       var(--re-ponderosa);
+  --secondary:                var(--re-lagoon-800);
+  --secondary-foreground:     var(--re-dusty-white);
+  --muted:                    var(--re-lagoon-800);
+  --muted-foreground:         #98A4A6;
+  --accent:                   var(--re-lagoon-700);
+  --accent-foreground:        var(--re-dusty-white);
+  --destructive:              var(--color-danger);
+  --destructive-foreground:   var(--re-pure-white);
+  --border:                   rgba(239, 235, 234, 0.14);
+  --input:                    rgba(239, 235, 234, 0.14);
+  --ring:                     var(--re-lagoon-200);
+}
+
+/* =========================================================
+   Base layer — global rules
+   ========================================================= */
+@layer base {
+  /* Layout: fill the viewport top-to-bottom. The map's container is
+     position:absolute inset-0 against its parent — that parent needs an
+     explicit 100% height chain or it collapses to content height. */
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    background: var(--color-bg);
+    color: var(--color-fg-1);
+  }
+  body {
+    font-family: var(--font-body);
+    font-feature-settings: "kern", "liga", "calt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+  }
+
+  /* Third-party widget radius lock (MapLibre ships rounded controls). */
+  .maplibregl-ctrl,
+  .maplibregl-ctrl button,
+  .maplibregl-ctrl-group,
+  .maplibregl-popup-content,
+  .maplibregl-popup-tip,
+  .maplibregl-marker {
+    border-radius: 0 !important;
+  }
+
+  /* Focus ring — 2px Lagoon, always visible per spec accessibility note. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* =========================================================
+   Component utilities — live-vs-proposed treatment
+   ========================================================= */
+@layer components {
+  /* PROPOSED — diagonal hatch (45°, repeating-linear-gradient).
+     Applied to STUB layers, panels, and toggle backgrounds.    */
+  .proposed-hatch {
+    background-image: repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--color-proposed) 18%, transparent) 0,
+      color-mix(in srgb, var(--color-proposed) 18%, transparent) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  }
+
+  /* PROPOSED — dashed 1px tangerine border. */
+  .proposed-border {
+    border: 1px dashed var(--color-proposed);
+  }
+
+  /* REAL — solid 1px hairline. */
+  .real-border {
+    border: 1px solid var(--color-hairline);
+  }
+
+  /* Editable mock value — tangerine mono + dashed underline + ✎ */
+  .proposed-editable {
+    font-family: var(--font-mono);
+    color: var(--color-proposed);
+    text-decoration: underline dashed;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    cursor: text;
+  }
+  .proposed-editable::after {
+    content: " \270E";   /* ✎ */
+    margin-left: 0.25em;
+    font-size: 0.9em;
+    opacity: 0.85;
+  }
+
+  /* DATE REALE stamp — green dot + mono caps */
+  .stamp-real {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-real);
+  }
+  .stamp-real::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    background: var(--color-real);
+  }
+
+  /* PROPUS stamp — tangerine, dashed border, hollow dot */
+  .stamp-proposed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 2px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-proposed);
+    border: 1px dashed var(--color-proposed);
+  }
+  .stamp-proposed::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    border: 1px solid var(--color-proposed);
+    background: transparent;
+  }
+}
