@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
+import { MapboxOverlay } from '@deck.gl/mapbox';
+import { COGLayer } from '@developmentseed/deck.gl-geotiff';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useApp, type Basemap } from '../store/state';
+import { useApp, type Basemap, type RP } from '../store/state';
+import { jrcTileUrl, JRC_MOLDOVA_TILES } from './jrc';
 import {
   BASEMAP_PMTILES,
   BASEMAP_GLYPHS,
@@ -305,12 +308,35 @@ function buildStyle(basemap: Basemap): StyleSpecification {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Build the deck.gl layer list for the JRC flood depth raster at the
+ * given return period. One COGLayer per Moldova tile (main + east sliver).
+ *
+ * The TIFFs aren't true COGs — they're internally tiled (256×256) but
+ * lack overviews — so low-zoom views will be slower than a proper COG.
+ * Workable for the demo; we'll mirror to a real COG bucket later if we
+ * need the speed.
+ */
+function buildJrcLayers(rp: RP) {
+  return JRC_MOLDOVA_TILES.map((t) =>
+    new COGLayer({
+      id: `jrc-${t.name}-rp${rp}`,
+      geotiff: jrcTileUrl(rp, t.name),
+      // `beforeId` would put this under MapLibre's fields-fill layer,
+      // but it isn't typed on COGLayerProps. Renders on top for now;
+      // we'll re-introduce interleaving once basic render is verified.
+    }),
+  );
+}
+
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const overlayRef = useRef<MapboxOverlay | null>(null);
   const [status, setStatus] = useState<string>('booting…');
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const basemap = useApp((s) => s.basemap);
+  const selectedRP = useApp((s) => s.selectedRP);
 
   // Mount the map exactly once.
   useEffect(() => {
@@ -345,9 +371,24 @@ export function MapView() {
       'bottom-right',
     );
 
+    // deck.gl overlay for the JRC depth raster — DISABLED.
+    // COGLayer's default render pipeline rejects Float32 (TIFF
+    // SampleFormat 3) rasters. JRC is Float32 depth in meters. To
+    // render this we need either:
+    //   (a) a custom getTileData + renderTile with a Float32-aware
+    //       shader that applies our Hydro ramp on the GPU, or
+    //   (b) precomputed UInt8 versions (8-bit binned depth bins)
+    //       that the default pipeline can handle.
+    // Decision pending — see the conversation in PR/issue.
+    void buildJrcLayers;
+    void overlayRef;
+    void MapboxOverlay;
+    void selectedRP;
+
     mapRef.current = map;
 
     return () => {
+      overlayRef.current = null;
       map.remove();
       mapRef.current = null;
     };
