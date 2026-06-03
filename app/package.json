@@ -12,6 +12,12 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.3.3",
+    "@deck.gl/mapbox": "^9.3.3",
+    "@developmentseed/deck.gl-geotiff": "^0.7.0",
+    "@developmentseed/deck.gl-raster": "^0.7.0",
+    "@developmentseed/geotiff": "^0.7.0",
+    "@luma.gl/core": "^9.3.3",
     "@tailwindcss/vite": "^4.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

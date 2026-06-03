@@ -30,6 +30,11 @@ export default defineConfig({
     // overrides are guaranteed to load before any component CSS.
     cssCodeSplit: false,
   },
+  // deck.gl-geotiff uses @developmentseed/lzw-tiff-decoder which has
+  // top-level await — requires ES module format for workers.
+  worker: {
+    format: 'es',
+  },
   // MapLibre + pmtiles produce some heavy chunks; bump the warning ceiling
   // so legitimate map bundles don't spam the build log.
   // (deck.gl is the usual culprit if we add it later — ~600 KB raw.)

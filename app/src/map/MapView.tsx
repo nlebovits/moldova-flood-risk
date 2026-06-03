@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
+import { MapboxOverlay } from '@deck.gl/mapbox';
+import type { Device, Texture } from '@luma.gl/core';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { useApp, type Basemap } from '../store/state';
@@ -16,6 +18,7 @@ import {
   ESRI_IMAGERY_TILES,
   ESRI_ATTRIBUTION,
 } from './sources';
+import { createFloodLayers, createHydroColormapTexture } from './flood';
 
 // pmtiles:// — module-level, single registration.
 const pmtilesProtocol = new Protocol({ metadata: true });
@@ -52,7 +55,7 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(38, 56, 58, 0.22)',
     boundaryCountry: 'rgba(38, 56, 58, 0.55)',
     road:            'rgba(38, 56, 58, 0.18)',
-    fieldFill:       '#5E97D1',
+    fieldFill:       '#469695',  // Lagoon — fields are now green, flood is blue
     fieldStroke:     'rgba(38, 56, 58, 0.45)',
     textCity:        '#26383A',
     textCityHalo:    '#EFEBEA',
@@ -67,7 +70,7 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(239, 235, 234, 0.20)',
     boundaryCountry: 'rgba(239, 235, 234, 0.55)',
     road:            'rgba(239, 235, 234, 0.20)',
-    fieldFill:       '#5E97D1',
+    fieldFill:       '#469695',  // Lagoon — fields are now green, flood is blue
     fieldStroke:     'rgba(239, 235, 234, 0.35)',
     textCity:        '#EFEBEA',
     textCityHalo:    '#121A19',
@@ -308,9 +311,44 @@ function buildStyle(basemap: Basemap): StyleSpecification {
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const overlayRef = useRef<MapboxOverlay | null>(null);
   const [status, setStatus] = useState<string>('booting…');
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const basemap = useApp((s) => s.basemap);
+  const selectedRP = useApp((s) => s.selectedRP);
+
+  // deck.gl GPU device and colormap texture (created once)
+  const [device, setDevice] = useState<Device | null>(null);
+  const [colormapTexture, setColormapTexture] = useState<Texture | null>(null);
+
+  // Create colormap texture when device becomes available
+  useEffect(() => {
+    if (device && !colormapTexture) {
+      const texture = createHydroColormapTexture(device);
+      setColormapTexture(texture);
+    }
+    // Cleanup on unmount only — colormapTexture is stable once created
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [device]);
+
+  // Create flood layers for the selected return period
+  const floodLayers = useMemo(() => {
+    return createFloodLayers({
+      rp: selectedRP,
+      device,
+      colormapTexture,
+      opacity: 0.85,
+      onLoad: (tileId) => setStatus(`flood: ${tileId} loaded`),
+    });
+  }, [selectedRP, device, colormapTexture]);
+
+  // Update deck.gl overlay when layers change
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (overlay) {
+      overlay.setProps({ layers: floodLayers });
+    }
+  }, [floodLayers]);
 
   // Mount the map exactly once.
   useEffect(() => {
@@ -345,9 +383,24 @@ export function MapView() {
       'bottom-right',
     );
 
+    // Add deck.gl overlay for flood raster layers
+    const overlay = new MapboxOverlay({
+      interleaved: true,
+      layers: [],
+      onDeviceInitialized: (dev) => {
+        setDevice(dev);
+        setStatus('deck.gl ready');
+      },
+    });
+    // MapLibre 4+ uses addControl for IControl implementations
+    map.addControl(overlay as unknown as maplibregl.IControl);
+    overlayRef.current = overlay;
+
     mapRef.current = map;
 
     return () => {
+      overlay.finalize();
+      overlayRef.current = null;
       map.remove();
       mapRef.current = null;
     };
