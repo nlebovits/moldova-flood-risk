@@ -2,26 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd app && pnpm build",
   "outputDirectory": "app/dist",
-  "framework": null,
-  "rewrites": [
-    {
-      "//": "Proxy JRC GloFAS Global Flood Hazard rasters. JRC's own server",
-      "//": "has no CORS headers, so we can't fetch the TIFFs directly from",
-      "//": "the browser. Vercel's edge transparently proxies, adding the",
-      "//": "Access-Control-Allow-Origin header that the browser needs.",
-      "source": "/jrc/:path*",
-      "destination": "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/CEMS-GLOFAS/flood_hazard/:path*"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/jrc/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, HEAD, OPTIONS" },
-        { "key": "Access-Control-Expose-Headers", "value": "Accept-Ranges, Content-Range, Content-Length, ETag" },
-        { "key": "Cache-Control", "value": "public, max-age=86400, immutable" }
-      ]
-    }
-  ]
+  "framework": null
 }
