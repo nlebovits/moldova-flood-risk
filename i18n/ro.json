@@ -5,7 +5,7 @@
     "subtitle": "Republica Moldova"
   },
   "headline": {
-    "stat_template": "{pct} din terenul agricol cartografiat se află în zona inundabilă de 1-din-100 ani"
+    "stat_template": "{pct} din terenul agricol cartografiat se află în zona inundabilă de 1-din-{rp} ani"
   },
   "rp": {
     "label": "Perioadă de revenire",
@@ -16,11 +16,6 @@
     "title": "Expunere · adâncime",
     "low": "mică",
     "high": "mare"
-  },
-  "provenance": {
-    "chip": "DATE REALE · JRC 90 M",
-    "about_title": "Despre date",
-    "about_body": "Datele reflectă inundațiile fluviale modelate de Centrul Comun de Cercetare (JRC) la o rezoluție de 90 de metri. Adâncimile afișate sunt indicative la această rezoluție și nu includ inundațiile pluviale."
   },
   "field_panel": {
     "title": "Profil de expunere",
@@ -35,6 +30,22 @@
     "exposed_template": "Expusă la RP{n}",
     "fields_touched": "Câmpuri afectate",
     "cropland_share": "Pondere teren arabil inundabil"
+  },
+  "admin_select": {
+    "label": "Mărește la un raion",
+    "placeholder": "Selectează un raion…"
+  },
+  "geocoder": {
+    "placeholder": "Caută o localitate…",
+    "searching": "Se caută…",
+    "no_results": "Niciun rezultat"
+  },
+  "sources": {
+    "title": "Surse de date",
+    "jrc": "JRC GloFAS — pericol de inundații v2.1.2, 90 m fluvial (CC BY 4.0)",
+    "ftw": "Fields of The World — limite de parcele (CC BY 4.0)",
+    "gadm": "GADM 4.1 — limite administrative (nivel 1)",
+    "caveat": "JRC 90 m · doar fluvial"
   },
   "eal": {
     "title": "Pierdere anuală estimată",
@@ -65,7 +76,6 @@
     "extends_note": "se extinde cu datele proiectului"
   },
   "stamps": {
-    "real": "Date reale",
     "proposed": "Propus"
   },
   "ui": {
@@ -82,7 +92,8 @@
     "language": "Limbă",
     "theme": "Temă",
     "explore_map": "Explorează harta",
-    "toggle_satellite": "Comută fundal satelitar"
+    "toggle_satellite": "Comută fundal satelitar",
+    "reset": "Vedere națională"
   },
   "units": {
     "ha": "ha"

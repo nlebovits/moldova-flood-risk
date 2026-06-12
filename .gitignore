@@ -72,6 +72,9 @@ yarn-error.log*
 
 # Generated data (regenerate with: make data)
 app/public/data/field_attrs.json
+# Per-RP flood-depth COGs (~25 MB total). Range-requested by deck.gl; for
+# production host on object storage and point JRC_COG_BASE in sources.ts there.
+app/public/data/jrc/
 app/public/data/fields.pmtiles
 report/data/field_attrs.json
 report/.jupyter_cache/

@@ -28,9 +28,6 @@ export function BecomesPanel() {
           <div className="re-body-sm font-medium text-[var(--color-fg-1)]">
             {t(locale, 'becomes.floor_title')}
           </div>
-          <div className="mt-1.5">
-            <span className="stamp-real">{t(locale, 'stamps.real')}</span>
-          </div>
         </div>
 
         {/* Ceiling — proposed */}

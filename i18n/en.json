@@ -5,7 +5,7 @@
     "subtitle": "Republic of Moldova"
   },
   "headline": {
-    "stat_template": "{pct} of mapped agricultural land falls within the 1-in-100 floodplain"
+    "stat_template": "{pct} of mapped agricultural land falls within the 1-in-{rp} floodplain"
   },
   "rp": {
     "label": "Return period",
@@ -16,11 +16,6 @@
     "title": "Exposure · depth",
     "low": "low",
     "high": "high"
-  },
-  "provenance": {
-    "chip": "REAL DATA · JRC 90 M",
-    "about_title": "About the data",
-    "about_body": "Data reflects fluvial (riverine) flooding modeled by the Joint Research Centre (JRC) at 90 m resolution. Depths shown are indicative at this resolution and do not include pluvial (surface-water) flooding."
   },
   "field_panel": {
     "title": "Exposure profile",
@@ -35,6 +30,22 @@
     "exposed_template": "Exposed at RP{n}",
     "fields_touched": "Fields touched",
     "cropland_share": "Share of cropland in floodplain"
+  },
+  "admin_select": {
+    "label": "Zoom to a raion",
+    "placeholder": "Select a raion…"
+  },
+  "geocoder": {
+    "placeholder": "Search a place…",
+    "searching": "Searching…",
+    "no_results": "No results"
+  },
+  "sources": {
+    "title": "Data sources",
+    "jrc": "JRC GloFAS flood hazard v2.1.2, 90 m fluvial (CC BY 4.0)",
+    "ftw": "Fields of The World — field boundaries (CC BY 4.0)",
+    "gadm": "GADM 4.1 — admin boundaries (level 1)",
+    "caveat": "JRC 90 m · fluvial only"
   },
   "eal": {
     "title": "Expected annual loss",
@@ -65,7 +76,6 @@
     "extends_note": "extends with project data"
   },
   "stamps": {
-    "real": "Real data",
     "proposed": "Proposed"
   },
   "ui": {
@@ -82,7 +92,8 @@
     "language": "Language",
     "theme": "Theme",
     "explore_map": "Explore the map",
-    "toggle_satellite": "Toggle satellite basemap"
+    "toggle_satellite": "Toggle satellite basemap",
+    "reset": "National view"
   },
   "units": {
     "ha": "ha"

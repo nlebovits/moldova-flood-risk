@@ -5,15 +5,14 @@
 export {
   createFloodLayers,
   createHydroColormapTexture,
+  FLOOD_BEFORE_ID,
   type FloodLayerOptions,
 } from './flood-layer';
 
 export {
   getJrcFloodUrl,
-  getJrcFloodUrls,
   JRC_ATTRIBUTION,
-  JRC_TILE_IDS,
-  type JrcTileId,
+  JRC_COG_BASE,
 } from './jrc-sources';
 
 export {

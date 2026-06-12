@@ -33,33 +33,7 @@ export const RASTER_HYDRO_STEP = [
   HYDRO_BREAKS_M[4], HYDRO_HEX[5],
 ] as const;
 
-/**
- * Field base fill — Lagoon green. A field that does not flood at the
- * selected RP reads as agricultural land; only exposed fields take the
- * blue Hydro ramp (evidence). Keeps the three color vocabularies separate:
- * Lagoon = the field layer's identity, blue = flood evidence.
- */
-export const FIELD_FILL_BASE = '#469695';
-
-/**
- * MapLibre `fill-color` step expression for vector field polygons at a given
- * return period. Reads the baked `depth_{rp}` attribute (meters):
- *   depth 0  → Lagoon field base (dry)
- *   depth >0 → Hydro ramp by depth bucket (exposed)
- *
- * On RP change call `map.setPaintProperty('fields-fill','fill-color',
- * vectorHydroStep(rp))` — no style rebuild.
- */
-export function vectorHydroStep(rp: number) {
-  return [
-    'step',
-    ['coalesce', ['get', `depth_${rp}`], 0],
-    FIELD_FILL_BASE,
-    0.001,             HYDRO_HEX[0],
-    HYDRO_BREAKS_M[0], HYDRO_HEX[1],
-    HYDRO_BREAKS_M[1], HYDRO_HEX[2],
-    HYDRO_BREAKS_M[2], HYDRO_HEX[3],
-    HYDRO_BREAKS_M[3], HYDRO_HEX[4],
-    HYDRO_BREAKS_M[4], HYDRO_HEX[5],
-  ];
-}
+// Fields now render as plain Lagoon-green outlines (see MapView's FIELD_OUTLINE)
+// and the flood evidence is the deck.gl raster overlay — so there is no longer
+// a per-RP vector fill expression here. HYDRO_HEX / HYDRO_BREAKS_M above remain
+// the single source of truth for the legend swatches.

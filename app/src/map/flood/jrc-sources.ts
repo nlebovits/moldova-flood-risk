@@ -1,44 +1,34 @@
 /**
- * JRC GloFAS Flood Hazard data sources.
+ * JRC GloFAS flood-depth COG source.
  *
- * Data mirrored to Source Cooperative from the JRC Data Catalogue:
- * https://data.jrc.ec.europa.eu/collection/id-0054
+ * One Cloud-Optimized GeoTIFF per return period, built offline by the
+ * precompute pipeline (`make flood-cogs`) from the cached JRC tiles. Each COG
+ * is a Moldova-clipped, zero-filled Float32 depth raster (meters) with
+ * `average` overviews — see `precompute/.../build_flood_cogs.py`.
  *
- * Coverage: Moldova is covered by two tiles:
- *   - ID134_N50_E20: 20-30°E × 40-50°N (bulk of Moldova)
- *   - ID146_N50_E30: 30-40°E × 40-50°N (eastern sliver)
+ *   Format: GeoTIFF Float32, depth in meters (0 = no flood, rendered transparent)
+ *   Resolution: 90 m (~3 arc-seconds)
+ *   Return periods: 10, 20, 50, 100, 200, 500 years
  *
- * Format: GeoTIFF Float32, depth in meters (0 = no flood)
- * Resolution: 90m (~3 arc-seconds)
- * Return periods: 10, 20, 50, 100, 200, 500 years
+ * Single swap point: dev serves the local files from `public/data/jrc/`; the
+ * six COGs total ~40 MB (too large to commit), so for production point
+ * `JRC_COG_BASE` at a hosted, range-requestable URL (Source Cooperative / a CDN),
+ * e.g. 'https://data.source.coop/<org>/moldova-test-data/jrc'.
  */
 
 import type { RP } from '../../store/state';
 
-/** Base URL for the mirrored JRC flood hazard data on Source Cooperative. */
-const SOURCE_COOP_BASE =
-  'https://data.source.coop/nlebovits/moldova-test-data/jrc-flood-hazard';
-
-/** Tile IDs covering Moldova. */
-export const JRC_TILE_IDS = ['ID134_N50_E20', 'ID146_N50_E30'] as const;
-export type JrcTileId = (typeof JRC_TILE_IDS)[number];
+/** Base URL for the per-RP flood-depth COGs. */
+export const JRC_COG_BASE = '/data/jrc';
 
 /**
- * Build the URL for a JRC flood depth GeoTIFF.
+ * Build the URL for a JRC flood-depth COG at a given return period.
  *
- * @param tileId - The tile ID (e.g. 'ID134_N50_E20')
  * @param rp - The return period (10, 20, 50, 100, 200, or 500)
  * @returns Full URL to the GeoTIFF
  */
-export function getJrcFloodUrl(tileId: JrcTileId, rp: RP): string {
-  return `${SOURCE_COOP_BASE}/RP${rp}/${tileId}_RP${rp}_depth.tif`;
-}
-
-/**
- * Get URLs for all JRC tiles at a given return period.
- */
-export function getJrcFloodUrls(rp: RP): string[] {
-  return JRC_TILE_IDS.map((tileId) => getJrcFloodUrl(tileId, rp));
+export function getJrcFloodUrl(rp: RP): string {
+  return `${JRC_COG_BASE}/RP${rp}_depth.tif`;
 }
 
 /**

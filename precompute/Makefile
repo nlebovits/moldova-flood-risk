@@ -18,6 +18,10 @@ WORK := _work
 APP_DATA := ../app/public/data
 REPORT_DATA := ../report/data
 
+# Per-RP flood-depth COGs shipped to the app's raster overlay.
+RETURN_PERIODS := 10 20 50 100 200 500
+FLOOD_COGS := $(foreach rp,$(RETURN_PERIODS),$(APP_DATA)/jrc/RP$(rp)_depth.tif)
+
 .PHONY: all
 all: report
 
@@ -26,11 +30,15 @@ data: $(APP_DATA)/field_attrs.json \
       $(APP_DATA)/fields.pmtiles \
       $(APP_DATA)/admin.geojson \
       $(APP_DATA)/summary.json \
-      $(APP_DATA)/eal.json
+      $(APP_DATA)/eal.json \
+      $(FLOOD_COGS)
 	@echo "✓ precompute complete"
 
 .PHONY: fields-tiles
 fields-tiles: $(APP_DATA)/fields.pmtiles
+
+.PHONY: flood-cogs
+flood-cogs: $(FLOOD_COGS)
 
 .PHONY: report
 report: $(REPORT_DATA)/variables.yml
@@ -60,6 +68,11 @@ $(APP_DATA)/field_attrs.json $(WORK)/fields_attributed.parquet &: $(WORK)/fields
 $(APP_DATA)/fields.pmtiles: $(WORK)/fields_attributed.parquet
 	@mkdir -p $(APP_DATA)
 	$(UV) build-fields-tiles
+
+# One COG per return period, built from the cached JRC tiles. `$*` is the RP.
+$(APP_DATA)/jrc/RP%_depth.tif: $(WORK)/jrc/.fetched
+	@mkdir -p $(APP_DATA)/jrc
+	$(UV) build-flood-cogs --rp $*
 
 $(APP_DATA)/admin.geojson: $(APP_DATA)/field_attrs.json
 	@mkdir -p $(APP_DATA)
@@ -93,6 +106,7 @@ clean:
 	rm -f $(APP_DATA)/admin.geojson
 	rm -f $(APP_DATA)/summary.json
 	rm -f $(APP_DATA)/eal.json
+	rm -rf $(APP_DATA)/jrc
 	rm -rf $(REPORT_DATA)
 	rm -rf ../report/_site
 

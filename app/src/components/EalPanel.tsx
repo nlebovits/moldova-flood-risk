@@ -30,7 +30,7 @@ export function EalPanel() {
   const unit = t(locale, 'eal.unit_ha_per_year');
 
   return (
-    <div className="pointer-events-auto w-[320px] border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]/97 backdrop-blur-[2px] shadow-[0_8px_24px_rgba(38,56,58,0.12)]">
+    <div className="border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]">
       <div className="border-b border-[var(--color-border)] px-4 py-3">
         <div className="re-eyebrow">{t(locale, 'eal.title')}</div>
         <div className="mt-1 flex items-baseline gap-2">
@@ -74,8 +74,7 @@ export function EalPanel() {
         </ul>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-[var(--color-border)] px-4 py-2.5">
-        <span className="stamp-real">{t(locale, 'stamps.real')}</span>
+      <div className="border-t border-[var(--color-border)] px-4 py-2.5 text-right">
         <span className="re-meta">{unit}</span>
       </div>
     </div>

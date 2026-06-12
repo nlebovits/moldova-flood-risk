@@ -1,12 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
+import { MapboxOverlay } from '@deck.gl/mapbox';
+import type { Device } from '@luma.gl/core';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useApp, type Basemap, type RP, themeFromBasemap } from '../store/state';
+import { useApp, type Basemap, themeFromBasemap } from '../store/state';
 import { useData } from '../lib/data';
-import { vectorHydroStep } from '../data/floodRamp';
+import { createFloodLayers, createHydroColormapTexture, FLOOD_BEFORE_ID } from './flood';
 import { wireInteractions } from './interactions';
+import { setMap, MOLDOVA_VIEW } from './mapRegistry';
+import { t } from '../lib/i18n';
 import {
   BASEMAP_PMTILES,
   BASEMAP_GLYPHS,
@@ -25,8 +29,46 @@ import {
 const pmtilesProtocol = new Protocol({ metadata: true });
 maplibregl.addProtocol('pmtiles', pmtilesProtocol.tile);
 
-const MOLDOVA_CENTER: [number, number] = [28.6, 47.05];
-const MOLDOVA_ZOOM = 7.1;
+// Fields render as plain Lagoon-green outlines on every basemap (the green is
+// interface identity; the blue flood raster is the evidence). The transparent
+// fill below stays solely for click hit-testing.
+const FIELD_OUTLINE = '#469695';
+
+// ---------------------------------------------------------------------------
+// Reset control — a button stacked with the NavigationControl (top-right) that
+// flies back to the national overview. Custom IControl so it shares MapLibre's
+// control chrome (and the no-radius lock applied to .maplibregl-ctrl).
+// ---------------------------------------------------------------------------
+class ResetControl implements maplibregl.IControl {
+  private container: HTMLDivElement | null = null;
+  private readonly label: string;
+  constructor(label: string) {
+    this.label = label;
+  }
+
+  onAdd(map: MapLibreMap): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.title = this.label;
+    button.setAttribute('aria-label', this.label);
+    // Lucide `house` glyph, inline so it inherits the control's currentColor.
+    button.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" style="display:block;margin:auto"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+    button.addEventListener('click', () => {
+      map.flyTo({ center: MOLDOVA_VIEW.center, zoom: MOLDOVA_VIEW.zoom, duration: 700 });
+    });
+    container.appendChild(button);
+    this.container = container;
+    return container;
+  }
+
+  onRemove(): void {
+    this.container?.parentNode?.removeChild(this.container);
+    this.container = null;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Palette per theme. Map paint expressions can't read CSS variables, so we
@@ -41,7 +83,6 @@ const PALETTE: Record<Theme, {
   boundary: string;
   boundaryCountry: string;
   road: string;
-  fieldStroke: string;
   adminHover: string;
   adminSelected: string;
   textCity: string;
@@ -57,7 +98,6 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(38, 56, 58, 0.22)',
     boundaryCountry: 'rgba(38, 56, 58, 0.55)',
     road:            'rgba(38, 56, 58, 0.18)',
-    fieldStroke:     'rgba(38, 56, 58, 0.45)',
     adminHover:      'rgba(70, 150, 149, 0.12)',  // Lagoon, faint
     adminSelected:   '#469695',                    // Lagoon (interface)
     textCity:        '#26383A',
@@ -73,7 +113,6 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(239, 235, 234, 0.20)',
     boundaryCountry: 'rgba(239, 235, 234, 0.55)',
     road:            'rgba(239, 235, 234, 0.20)',
-    fieldStroke:     'rgba(239, 235, 234, 0.35)',
     adminHover:      'rgba(155, 195, 194, 0.14)',  // Lagoon-200, faint
     adminSelected:   '#9BC3C2',                     // Lagoon-200
     textCity:        '#EFEBEA',
@@ -85,11 +124,11 @@ const PALETTE: Record<Theme, {
 };
 
 // ---------------------------------------------------------------------------
-// Style builder. Takes the current basemap + selected RP and returns a full
-// MapLibre style. The fields fill color is RP-dependent; live RP changes are
-// applied via setPaintProperty (no rebuild) — see the effect below.
+// Style builder. Takes the current basemap and returns a full MapLibre style.
+// The flood evidence is a deck.gl raster overlay (not a style layer); fields
+// are outline-only here, so the style no longer depends on the selected RP.
 // ---------------------------------------------------------------------------
-function buildStyle(basemap: Basemap, rp: RP): StyleSpecification {
+function buildStyle(basemap: Basemap): StyleSpecification {
   const theme = themeFromBasemap(basemap);
   const satellite = basemap === 'satellite';
   const p = PALETTE[theme];
@@ -210,31 +249,30 @@ function buildStyle(basemap: Basemap, rp: RP): StyleSpecification {
         },
       },
 
-      // Moldova field polygons — the data spine. Colored by baked depth_{rp}:
-      // dry fields read Lagoon green, exposed fields take the blue Hydro ramp.
+      // Moldova field polygons — the data spine. Transparent fill kept ONLY
+      // for click hit-testing (queryRenderedFeatures targets 'fields-fill');
+      // the flood raster sits just above it (beforeId 'fields-stroke').
       {
         id: 'fields-fill',
         type: 'fill',
         source: 'fields',
         'source-layer': FIELDS_SOURCE_LAYER,
         paint: {
-          'fill-color': vectorHydroStep(rp) as unknown as string,
-          'fill-opacity': [
-            'interpolate', ['linear'], ['zoom'],
-            6, 0.45,
-            10, 0.62,
-            14, 0.78,
-          ],
+          'fill-color': FIELD_OUTLINE,
+          'fill-opacity': 0,
         },
       },
+      // Field outlines — plain Lagoon green on every basemap (interface
+      // identity), zoom-graduated width. The blue flood raster is the evidence.
+      // id === FLOOD_BEFORE_ID: the flood overlay renders directly beneath this.
       {
-        id: 'fields-stroke',
+        id: FLOOD_BEFORE_ID,
         type: 'line',
         source: 'fields',
         'source-layer': FIELDS_SOURCE_LAYER,
         paint: {
-          'line-color': p.fieldStroke,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.2, 10, 0.4, 14, 0.8],
+          'line-color': FIELD_OUTLINE,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 10, 0.7, 14, 1.2],
         },
       },
       // Selected field — Lagoon outline driven by feature-state.
@@ -343,6 +381,7 @@ function buildStyle(basemap: Basemap, rp: RP): StyleSpecification {
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const overlayRef = useRef<MapboxOverlay | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
   const basemap = useApp((s) => s.basemap);
@@ -351,9 +390,30 @@ export function MapView() {
   const selectedAdminId = useApp((s) => s.selectedAdminId);
   const loadData = useData((s) => s.load);
 
+  // deck.gl GPU device, set once the overlay initializes it.
+  const [device, setDevice] = useState<Device | null>(null);
+
+  // Hydro colormap texture — built once the device exists (memoized on device).
+  const colormapTexture = useMemo(
+    () => (device ? createHydroColormapTexture(device) : null),
+    [device],
+  );
+
   // Track applied feature-state so we can clear the previous selection.
   const prevFieldId = useRef<number | null>(null);
   const prevAdminId = useRef<string | null>(null);
+
+  // The flood-depth raster layer for the selected RP. Stable layer id, so an
+  // RP change re-fetches tiles rather than recreating the layer.
+  const floodLayers = useMemo(
+    () => createFloodLayers({ rp: selectedRP, device, colormapTexture, opacity: 0.85 }),
+    [selectedRP, device, colormapTexture],
+  );
+
+  // Push the current flood layers onto the deck.gl overlay.
+  useEffect(() => {
+    overlayRef.current?.setProps({ layers: floodLayers });
+  }, [floodLayers]);
 
   // Load the precompute sidecars once.
   useEffect(() => {
@@ -366,9 +426,9 @@ export function MapView() {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: buildStyle(useApp.getState().basemap, useApp.getState().selectedRP),
-      center: MOLDOVA_CENTER,
-      zoom: MOLDOVA_ZOOM,
+      style: buildStyle(useApp.getState().basemap),
+      center: MOLDOVA_VIEW.center,
+      zoom: MOLDOVA_VIEW.zoom,
       minZoom: 5,
       maxZoom: 14,
       attributionControl: { compact: true },
@@ -382,40 +442,48 @@ export function MapView() {
     map.on('webglcontextlost', () => setErrMsg('WebGL context lost'));
     map.on('webglcontextrestored', () => setErrMsg(null));
 
+    // Zoom + reset, stacked top-right (clear of the bottom-left legend and the
+    // bottom-right attribution).
     map.addControl(
       new maplibregl.NavigationControl({ showCompass: false }),
-      'bottom-right',
+      'top-right',
     );
+    map.addControl(
+      new ResetControl(t(useApp.getState().locale, 'controls.reset')),
+      'top-right',
+    );
+
+    // deck.gl overlay for the flood-depth raster. Interleaved so it composites
+    // inside the MapLibre layer stack (honoring the flood layer's beforeId).
+    const overlay = new MapboxOverlay({
+      interleaved: true,
+      layers: [],
+      onDeviceInitialized: (dev: Device) => setDevice(dev),
+    });
+    map.addControl(overlay as unknown as maplibregl.IControl);
+    overlayRef.current = overlay;
 
     const teardownInteractions = wireInteractions(map);
     mapRef.current = map;
+    setMap(map);
 
     return () => {
       teardownInteractions();
+      overlay.finalize();
+      overlayRef.current = null;
+      setMap(null);
       map.remove();
       mapRef.current = null;
     };
   }, []);
 
-  // Live RP recolor — no style rebuild.
-  useEffect(() => {
-    const m = mapRef.current;
-    if (!m) return;
-    const apply = () => {
-      if (m.getLayer('fields-fill')) {
-        m.setPaintProperty('fields-fill', 'fill-color', vectorHydroStep(selectedRP));
-      }
-    };
-    if (m.isStyleLoaded()) apply();
-    else m.once('idle', apply);
-  }, [selectedRP]);
-
   // Re-apply style on basemap change (light / dark / satellite). diff:true
-  // preserves unchanged sources; selection feature-state is re-applied below.
+  // preserves unchanged sources; the interleaved deck.gl overlay survives the
+  // rebuild. Selection feature-state is re-applied below.
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
-    m.setStyle(buildStyle(basemap, useApp.getState().selectedRP), { diff: true });
+    m.setStyle(buildStyle(basemap), { diff: true });
   }, [basemap]);
 
   // Apply selection feature-state (field OR admin). Clears the prior one.

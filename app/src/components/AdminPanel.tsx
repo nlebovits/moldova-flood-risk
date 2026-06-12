@@ -21,7 +21,7 @@ export function AdminPanel() {
   const pct = adminPctExposed(a, selectedRP);
 
   return (
-    <div className="pointer-events-auto w-[320px] border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]/97 backdrop-blur-[2px] shadow-[0_8px_24px_rgba(38,56,58,0.12)]">
+    <div className="border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]">
       <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] px-4 py-3">
         <div>
           <div className="re-eyebrow">{t(locale, 'admin_panel.title')}</div>
@@ -60,8 +60,7 @@ export function AdminPanel() {
         </Row>
       </dl>
 
-      <div className="flex items-center justify-between gap-2 border-t border-[var(--color-border)] px-4 py-2.5">
-        <span className="stamp-real">{t(locale, 'stamps.real')}</span>
+      <div className="border-t border-[var(--color-border)] px-4 py-2.5 text-right">
         <span className="re-meta font-mono">RP{selectedRP}</span>
       </div>
     </div>

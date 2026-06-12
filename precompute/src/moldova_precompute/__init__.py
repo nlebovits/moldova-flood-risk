@@ -116,6 +116,24 @@ def build_fields_tiles_cmd() -> None:
     run()
 
 
+@cli.command("build-flood-cogs")
+@click.option(
+    "--rp",
+    type=click.Choice([str(r) for r in const.RETURN_PERIODS]),
+    default=None,
+    help="Build a single return period (default: all six).",
+)
+def build_flood_cogs_cmd(rp: str | None) -> None:
+    """Build per-RP flood-depth COGs into ``app/public/data/jrc/``.
+
+    Mosaics the cached JRC tiles, zero-fills dry land (JRC nodata = -9999),
+    and writes overview-bearing Cloud-Optimized GeoTIFFs for the raster overlay.
+    """
+    from .build_flood_cogs import run
+
+    run(int(rp) if rp is not None else None)
+
+
 @cli.command("export-report")
 def export_report_cmd() -> None:
     """Export all data for the Quarto report.

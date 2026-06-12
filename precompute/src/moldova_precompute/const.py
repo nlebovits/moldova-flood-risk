@@ -120,6 +120,9 @@ ADMIN_RAW: Final[Path] = WORK_DIR / "admin_raw.geojson"
 APP_DATA_DIR: Final[Path] = REPO_ROOT / "app" / "public" / "data"
 FIELD_ATTRS_JSON: Final[Path] = APP_DATA_DIR / "field_attrs.json"
 FIELDS_PMTILES: Final[Path] = APP_DATA_DIR / "fields.pmtiles"
+# Per-RP flood-depth COGs shipped to the app (built by build-flood-cogs from the
+# cached JRC tiles in JRC_RASTER_DIR). Rendered as the flood-evidence raster.
+JRC_COG_DIR: Final[Path] = APP_DATA_DIR / "jrc"
 ADMIN_GEOJSON: Final[Path] = APP_DATA_DIR / "admin.geojson"
 SUMMARY_JSON: Final[Path] = APP_DATA_DIR / "summary.json"
 

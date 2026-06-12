@@ -15,7 +15,15 @@ import type { GeoTIFF, Overview } from '@developmentseed/geotiff';
 import type { Device, Texture } from '@luma.gl/core';
 import type { RP } from '../../store/state';
 import { createHydroColormapTexture, MAX_DEPTH_M } from './hydro-colormap';
-import { getJrcFloodUrl, JRC_TILE_IDS, type JrcTileId } from './jrc-sources';
+import { getJrcFloodUrl } from './jrc-sources';
+
+/**
+ * Anchor layer the flood raster renders beneath. The raster sits above the
+ * basemap/water and the (transparent) field fill, but below the field
+ * outlines, admin lines, and labels — see the MapLibre style in MapView.
+ * Exported so the style builder and the deck.gl layer share one source of truth.
+ */
+export const FLOOD_BEFORE_ID = 'fields-stroke';
 
 /** Options passed to getTileData by COGLayer. */
 interface GetTileDataOptions {
@@ -144,14 +152,17 @@ export interface FloodLayerOptions {
   /** Debug mode (show tile boundaries) */
   debug?: boolean;
   /** Callback when GeoTIFF metadata is loaded */
-  onLoad?: (tileId: JrcTileId) => void;
+  onLoad?: () => void;
+  /** MapLibre layer id the raster renders beneath (default FLOOD_BEFORE_ID). */
+  beforeId?: string;
 }
 
 /**
- * Create COGLayers for JRC flood depth at the given return period.
+ * Create the JRC flood-depth COG layer for the given return period.
  *
- * Returns one layer per tile covering Moldova. The layers handle Float32
- * depth data and apply the Hydro blue colormap on the GPU.
+ * Returns a single-element array (deck.gl's `setProps({ layers })` wants an
+ * array) holding one COGLayer that streams the per-RP Moldova COG, handles its
+ * Float32 depth data, and applies the Hydro blue colormap on the GPU.
  */
 export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
   const {
@@ -161,6 +172,7 @@ export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
     opacity = 0.85,
     debug = false,
     onLoad,
+    beforeId = FLOOD_BEFORE_ID,
   } = options;
 
   if (!device || !colormapTexture) {
@@ -169,21 +181,21 @@ export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
 
   const renderTile = makeRenderTile(colormapTexture);
 
-  return JRC_TILE_IDS.map((tileId) => {
-    const url = getJrcFloodUrl(tileId, rp);
-
-    return new COGLayer({
-      id: `flood-${tileId}-rp${rp}`,
-      geotiff: url,
+  // Stable id across RP changes so deck.gl diffs (re-fetches tiles) rather than
+  // tearing the layer down and recreating it on every selector click.
+  return [
+    new COGLayer({
+      id: 'flood-depth',
+      geotiff: getJrcFloodUrl(rp),
       opacity,
       debug,
       getTileData,
       renderTile,
-      onGeoTIFFLoad: () => onLoad?.(tileId),
+      onGeoTIFFLoad: () => onLoad?.(),
       // @ts-expect-error beforeId is injected by @deck.gl/mapbox
-      beforeId: 'fields-fill', // Render below field polygons
-    });
-  });
+      beforeId,
+    }),
+  ];
 }
 
 /**
