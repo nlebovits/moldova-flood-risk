@@ -33,8 +33,13 @@ precompute/.pytest_cache/
 
 # ===========================================
 # Precompute build artifacts — large, regenerable.
-# Output JSON/pmtiles land in app/public/data/ and ARE committed
-# so deploys don't need a precompute step.
+# The small JSON sidecars (summary.json, admin.geojson, eal.json) land in
+# app/public/data/ and ARE committed so deploys don't need a precompute step.
+# The large artifacts — field_attrs.json and fields.pmtiles — are NOT committed
+# (they blow past GitHub's 100 MB limit). fields.pmtiles is range-requested, so
+# in production it is hosted on object storage (Source Cooperative / a CDN) and
+# FIELDS_PMTILES in app/src/map/sources.ts points at that URL. For local dev it
+# sits at app/public/data/fields.pmtiles (regenerate: `make fields-tiles`).
 # ===========================================
 precompute/_cache/
 precompute/_work/
@@ -67,5 +72,6 @@ yarn-error.log*
 
 # Generated data (regenerate with: make data)
 app/public/data/field_attrs.json
+app/public/data/fields.pmtiles
 report/data/field_attrs.json
 report/.jupyter_cache/

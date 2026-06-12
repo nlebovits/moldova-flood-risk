@@ -1,24 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
-import { MapboxOverlay } from '@deck.gl/mapbox';
-import type { Device, Texture } from '@luma.gl/core';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useApp, type Basemap } from '../store/state';
+import { useApp, type Basemap, type RP, themeFromBasemap } from '../store/state';
+import { useData } from '../lib/data';
+import { vectorHydroStep } from '../data/floodRamp';
+import { wireInteractions } from './interactions';
 import {
   BASEMAP_PMTILES,
   BASEMAP_GLYPHS,
   BASEMAP_ATTRIBUTION,
-  FTW_PMTILES,
-  FTW_SOURCE_LAYER,
+  FIELDS_PMTILES,
+  FIELDS_SOURCE_LAYER,
   FTW_ATTRIBUTION,
+  ADMIN_GEOJSON_URL,
   OVERTURE_DIVISIONS_PMTILES,
   OVERTURE_ATTRIBUTION,
   ESRI_IMAGERY_TILES,
   ESRI_ATTRIBUTION,
 } from './sources';
-import { createFloodLayers, createHydroColormapTexture } from './flood';
 
 // pmtiles:// — module-level, single registration.
 const pmtilesProtocol = new Protocol({ metadata: true });
@@ -40,8 +41,9 @@ const PALETTE: Record<Theme, {
   boundary: string;
   boundaryCountry: string;
   road: string;
-  fieldFill: string;
   fieldStroke: string;
+  adminHover: string;
+  adminSelected: string;
   textCity: string;
   textCityHalo: string;
   textTown: string;
@@ -55,8 +57,9 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(38, 56, 58, 0.22)',
     boundaryCountry: 'rgba(38, 56, 58, 0.55)',
     road:            'rgba(38, 56, 58, 0.18)',
-    fieldFill:       '#469695',  // Lagoon — fields are now green, flood is blue
     fieldStroke:     'rgba(38, 56, 58, 0.45)',
+    adminHover:      'rgba(70, 150, 149, 0.12)',  // Lagoon, faint
+    adminSelected:   '#469695',                    // Lagoon (interface)
     textCity:        '#26383A',
     textCityHalo:    '#EFEBEA',
     textTown:        '#4A5C5E',
@@ -70,8 +73,9 @@ const PALETTE: Record<Theme, {
     boundary:        'rgba(239, 235, 234, 0.20)',
     boundaryCountry: 'rgba(239, 235, 234, 0.55)',
     road:            'rgba(239, 235, 234, 0.20)',
-    fieldFill:       '#469695',  // Lagoon — fields are now green, flood is blue
     fieldStroke:     'rgba(239, 235, 234, 0.35)',
+    adminHover:      'rgba(155, 195, 194, 0.14)',  // Lagoon-200, faint
+    adminSelected:   '#9BC3C2',                     // Lagoon-200
     textCity:        '#EFEBEA',
     textCityHalo:    '#121A19',
     textTown:        '#9BC3C2',
@@ -80,15 +84,13 @@ const PALETTE: Record<Theme, {
   },
 };
 
-function deriveThemeFromBasemap(b: Basemap): Theme {
-  return b === 'positron-dark' || b === 'satellite' ? 'dark' : 'light';
-}
-
 // ---------------------------------------------------------------------------
-// Style builder. Takes the current basemap and returns a full MapLibre style.
+// Style builder. Takes the current basemap + selected RP and returns a full
+// MapLibre style. The fields fill color is RP-dependent; live RP changes are
+// applied via setPaintProperty (no rebuild) — see the effect below.
 // ---------------------------------------------------------------------------
-function buildStyle(basemap: Basemap): StyleSpecification {
-  const theme = deriveThemeFromBasemap(basemap);
+function buildStyle(basemap: Basemap, rp: RP): StyleSpecification {
+  const theme = themeFromBasemap(basemap);
   const satellite = basemap === 'satellite';
   const p = PALETTE[theme];
 
@@ -101,12 +103,18 @@ function buildStyle(basemap: Basemap): StyleSpecification {
         url: BASEMAP_PMTILES,
         attribution: BASEMAP_ATTRIBUTION,
       },
-      ftw: {
+      fields: {
         type: 'vector',
-        url: FTW_PMTILES,
+        url: FIELDS_PMTILES,
         attribution: FTW_ATTRIBUTION,
+        promoteId: { [FIELDS_SOURCE_LAYER]: 'id' },
         minzoom: 0,
-        maxzoom: 15,
+        maxzoom: 14,
+      },
+      admin: {
+        type: 'geojson',
+        data: ADMIN_GEOJSON_URL,
+        promoteId: 'name',
       },
       divisions: {
         type: 'vector',
@@ -154,8 +162,6 @@ function buildStyle(basemap: Basemap): StyleSpecification {
               source: 'basemap',
               'source-layer': 'landcover',
               paint: {
-                // TS can't infer the `match` tuple shape across mixed
-                // string/string[] members; runtime accepts it fine.
                 'fill-color': ([
                   'match',
                   ['get', 'kind'],
@@ -192,7 +198,7 @@ function buildStyle(basemap: Basemap): StyleSpecification {
         },
       },
 
-      // Country / region boundaries from the basemap (for context worldwide)
+      // Country / region boundaries from the basemap (context worldwide)
       {
         id: 'basemap-boundaries',
         type: 'line',
@@ -204,49 +210,75 @@ function buildStyle(basemap: Basemap): StyleSpecification {
         },
       },
 
-      // FTW field polygons — the data spine
+      // Moldova field polygons — the data spine. Colored by baked depth_{rp}:
+      // dry fields read Lagoon green, exposed fields take the blue Hydro ramp.
       {
         id: 'fields-fill',
         type: 'fill',
-        source: 'ftw',
-        'source-layer': FTW_SOURCE_LAYER,
+        source: 'fields',
+        'source-layer': FIELDS_SOURCE_LAYER,
         paint: {
-          'fill-color': p.fieldFill,
+          'fill-color': vectorHydroStep(rp) as unknown as string,
           'fill-opacity': [
             'interpolate', ['linear'], ['zoom'],
-            6, 0.35,
-            10, 0.55,
-            14, 0.7,
+            6, 0.45,
+            10, 0.62,
+            14, 0.78,
           ],
         },
       },
       {
         id: 'fields-stroke',
         type: 'line',
-        source: 'ftw',
-        'source-layer': FTW_SOURCE_LAYER,
+        source: 'fields',
+        'source-layer': FIELDS_SOURCE_LAYER,
         paint: {
           'line-color': p.fieldStroke,
           'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.2, 10, 0.4, 14, 0.8],
         },
       },
-
-      // Overture admin boundaries — counties (raioane in Moldova)
+      // Selected field — Lagoon outline driven by feature-state.
       {
-        id: 'divisions-county',
+        id: 'fields-selected',
         type: 'line',
-        source: 'divisions',
-        'source-layer': 'division_boundary',
-        filter: ['==', ['get', 'subtype'], 'county'],
-        minzoom: 5,
+        source: 'fields',
+        'source-layer': FIELDS_SOURCE_LAYER,
         paint: {
-          'line-color': satellite ? 'rgba(255, 255, 255, 0.5)' : p.boundary,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.3, 9, 0.8, 13, 1.4],
-          'line-dasharray': [2, 2],
+          'line-color': p.adminSelected,
+          'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 0],
         },
       },
 
-      // Overture admin boundaries — country (heavier, solid)
+      // Admin units (raioane) from our own data — hit-testable + hover tint.
+      {
+        id: 'admin-fill',
+        type: 'fill',
+        source: 'admin',
+        paint: {
+          'fill-color': p.adminSelected,
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.10, 0],
+        },
+      },
+      {
+        id: 'admin-outline',
+        type: 'line',
+        source: 'admin',
+        paint: {
+          'line-color': satellite ? 'rgba(255,255,255,0.45)' : p.boundary,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.4, 9, 0.9, 13, 1.5],
+        },
+      },
+      {
+        id: 'admin-selected',
+        type: 'line',
+        source: 'admin',
+        paint: {
+          'line-color': p.adminSelected,
+          'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 0],
+        },
+      },
+
+      // Overture country boundary — heavier, solid, for national context.
       {
         id: 'divisions-country',
         type: 'line',
@@ -311,56 +343,30 @@ function buildStyle(basemap: Basemap): StyleSpecification {
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const overlayRef = useRef<MapboxOverlay | null>(null);
-  const [status, setStatus] = useState<string>('booting…');
   const [errMsg, setErrMsg] = useState<string | null>(null);
+
   const basemap = useApp((s) => s.basemap);
   const selectedRP = useApp((s) => s.selectedRP);
+  const selectedField = useApp((s) => s.selectedField);
+  const selectedAdminId = useApp((s) => s.selectedAdminId);
+  const loadData = useData((s) => s.load);
 
-  // deck.gl GPU device and colormap texture (created once)
-  const [device, setDevice] = useState<Device | null>(null);
-  const [colormapTexture, setColormapTexture] = useState<Texture | null>(null);
+  // Track applied feature-state so we can clear the previous selection.
+  const prevFieldId = useRef<number | null>(null);
+  const prevAdminId = useRef<string | null>(null);
 
-  // Create colormap texture when device becomes available
+  // Load the precompute sidecars once.
   useEffect(() => {
-    if (device && !colormapTexture) {
-      const texture = createHydroColormapTexture(device);
-      setColormapTexture(texture);
-    }
-    // Cleanup on unmount only — colormapTexture is stable once created
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [device]);
-
-  // Create flood layers for the selected return period
-  const floodLayers = useMemo(() => {
-    return createFloodLayers({
-      rp: selectedRP,
-      device,
-      colormapTexture,
-      opacity: 0.85,
-      onLoad: (tileId) => setStatus(`flood: ${tileId} loaded`),
-    });
-  }, [selectedRP, device, colormapTexture]);
-
-  // Update deck.gl overlay when layers change
-  useEffect(() => {
-    const overlay = overlayRef.current;
-    if (overlay) {
-      overlay.setProps({ layers: floodLayers });
-    }
-  }, [floodLayers]);
+    void loadData();
+  }, [loadData]);
 
   // Mount the map exactly once.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const el = containerRef.current;
-    const rect = el.getBoundingClientRect();
-    setStatus(`container ${Math.round(rect.width)}×${Math.round(rect.height)}`);
-
     const map = new maplibregl.Map({
-      container: el,
-      style: buildStyle(useApp.getState().basemap),
+      container: containerRef.current,
+      style: buildStyle(useApp.getState().basemap, useApp.getState().selectedRP),
       center: MOLDOVA_CENTER,
       zoom: MOLDOVA_ZOOM,
       minZoom: 5,
@@ -368,8 +374,6 @@ export function MapView() {
       attributionControl: { compact: true },
     });
 
-    map.on('load', () => setStatus('load fired'));
-    map.on('idle', () => setStatus('rendered'));
     map.on('error', (e) => {
       const msg = e?.error?.message || String(e);
       console.error('[MapLibre]', msg, e);
@@ -383,37 +387,82 @@ export function MapView() {
       'bottom-right',
     );
 
-    // Add deck.gl overlay for flood raster layers
-    const overlay = new MapboxOverlay({
-      interleaved: true,
-      layers: [],
-      onDeviceInitialized: (dev) => {
-        setDevice(dev);
-        setStatus('deck.gl ready');
-      },
-    });
-    // MapLibre 4+ uses addControl for IControl implementations
-    map.addControl(overlay as unknown as maplibregl.IControl);
-    overlayRef.current = overlay;
-
+    const teardownInteractions = wireInteractions(map);
     mapRef.current = map;
 
     return () => {
-      overlay.finalize();
-      overlayRef.current = null;
+      teardownInteractions();
       map.remove();
       mapRef.current = null;
     };
   }, []);
 
-  // Re-apply style when basemap changes (light / dark / satellite).
-  // setStyle with diff:true preserves sources that haven't changed.
+  // Live RP recolor — no style rebuild.
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
-    m.setStyle(buildStyle(basemap), { diff: true });
-    setStatus(`switching → ${basemap}`);
+    const apply = () => {
+      if (m.getLayer('fields-fill')) {
+        m.setPaintProperty('fields-fill', 'fill-color', vectorHydroStep(selectedRP));
+      }
+    };
+    if (m.isStyleLoaded()) apply();
+    else m.once('idle', apply);
+  }, [selectedRP]);
+
+  // Re-apply style on basemap change (light / dark / satellite). diff:true
+  // preserves unchanged sources; selection feature-state is re-applied below.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+    m.setStyle(buildStyle(basemap, useApp.getState().selectedRP), { diff: true });
   }, [basemap]);
+
+  // Apply selection feature-state (field OR admin). Clears the prior one.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    const apply = () => {
+      // Clear previous field selection.
+      if (prevFieldId.current !== null) {
+        m.setFeatureState(
+          { source: 'fields', sourceLayer: FIELDS_SOURCE_LAYER, id: prevFieldId.current },
+          { selected: false },
+        );
+        prevFieldId.current = null;
+      }
+      // Clear previous admin selection.
+      if (prevAdminId.current !== null) {
+        m.setFeatureState({ source: 'admin', id: prevAdminId.current }, { selected: false });
+        prevAdminId.current = null;
+      }
+
+      if (selectedField) {
+        m.setFeatureState(
+          { source: 'fields', sourceLayer: FIELDS_SOURCE_LAYER, id: selectedField.id },
+          { selected: true },
+        );
+        prevFieldId.current = selectedField.id;
+      } else if (selectedAdminId) {
+        m.setFeatureState({ source: 'admin', id: selectedAdminId }, { selected: true });
+        prevAdminId.current = selectedAdminId;
+
+        // Fly to the raion (covers map-click AND EAL-row-click selections).
+        const bounds = useData.getState().adminBounds[selectedAdminId];
+        if (bounds) {
+          m.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], {
+            padding: 80,
+            duration: 600,
+            maxZoom: 10,
+          });
+        }
+      }
+    };
+
+    if (m.isStyleLoaded()) apply();
+    else m.once('idle', apply);
+  }, [selectedField, selectedAdminId, basemap]);
 
   return (
     <>
@@ -426,23 +475,25 @@ export function MapView() {
           width: '100%', height: '100%',
         }}
       />
-      <div
-        style={{
-          position: 'absolute',
-          top: 8,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          background: 'rgba(0,0,0,0.78)',
-          color: errMsg ? '#FCBB15' : '#9BC4E6',
-          padding: '3px 10px',
-          font: '11px ui-monospace, monospace',
-          letterSpacing: '0.04em',
-          pointerEvents: 'none',
-        }}
-      >
-        map: {status}{errMsg ? ' · ' + errMsg : ''}
-      </div>
+      {errMsg && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.78)',
+            color: '#FCBB15',
+            padding: '3px 10px',
+            font: '11px ui-monospace, monospace',
+            letterSpacing: '0.04em',
+            pointerEvents: 'none',
+          }}
+        >
+          {errMsg}
+        </div>
+      )}
     </>
   );
 }

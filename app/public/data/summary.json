@@ -1,39 +1,39 @@
 {
   "pct_ag_in_rp100_floodplain": 2.18,
-  "total_ag_ha": 3734360.6,
+  "total_ag_ha": 3622947.5,
   "total_fields": 628685,
-  "exposed_ag_rp100_ha": 81587.1,
+  "exposed_ag_rp100_ha": 78812.1,
   "fields_touched_rp100": 6259,
   "by_rp": {
     "10": {
-      "exposed_ha": 55460.0,
+      "exposed_ha": 53422.2,
       "fields_touched": 5120,
-      "pct_ag_exposed": 1.49
+      "pct_ag_exposed": 1.47
     },
     "20": {
-      "exposed_ha": 64190.1,
+      "exposed_ha": 62038.3,
       "fields_touched": 5525,
-      "pct_ag_exposed": 1.72
+      "pct_ag_exposed": 1.71
     },
     "50": {
-      "exposed_ha": 74921.7,
+      "exposed_ha": 72341.8,
       "fields_touched": 5997,
-      "pct_ag_exposed": 2.01
+      "pct_ag_exposed": 2.0
     },
     "100": {
-      "exposed_ha": 81587.1,
+      "exposed_ha": 78812.1,
       "fields_touched": 6259,
       "pct_ag_exposed": 2.18
     },
     "200": {
-      "exposed_ha": 86912.5,
+      "exposed_ha": 83763.4,
       "fields_touched": 6507,
-      "pct_ag_exposed": 2.33
+      "pct_ag_exposed": 2.31
     },
     "500": {
-      "exposed_ha": 99605.3,
+      "exposed_ha": 96330.8,
       "fields_touched": 6799,
-      "pct_ag_exposed": 2.67
+      "pct_ag_exposed": 2.66
     }
   },
   "generated": "2026-06-12",

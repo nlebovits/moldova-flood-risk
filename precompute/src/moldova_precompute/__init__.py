@@ -104,6 +104,18 @@ def build_eal_cmd() -> None:
     run()
 
 
+@cli.command("build-fields-tiles")
+def build_fields_tiles_cmd() -> None:
+    """Tile the attributed fields into ``app/public/data/fields.pmtiles``.
+
+    Reads ``_work/fields_attributed.parquet`` (emitted by zonal-stats) and
+    streams it through the dev geoparquet-io ``pmtiles`` command.
+    """
+    from .build_fields_tiles import run
+
+    run()
+
+
 @cli.command("export-report")
 def export_report_cmd() -> None:
     """Export all data for the Quarto report.

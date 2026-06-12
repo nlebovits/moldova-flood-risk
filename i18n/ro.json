@@ -37,17 +37,16 @@
     "cropland_share": "Pondere teren arabil inundabil"
   },
   "eal": {
-    "title": "Pierdere anuală estimată (EAL)",
-    "value_exposed": "Valoare expusă",
-    "damage_curve": "Curbă de daune",
-    "eal_estimate": "EAL estimat",
-    "placeholder_tag": "coeficienți substituibili — metodă reală",
-    "per_ha_unit": "€ / ha",
-    "per_year_unit": "€ / an"
+    "title": "Pierdere anuală estimată",
+    "national": "Total național",
+    "top_raioane": "Raioane cu cel mai mare risc",
+    "unit_ha_per_year": "ha/an"
   },
   "portfolio": {
+    "title": "Portofoliu",
+    "hint": "Încarcă un portofoliu de parcele pentru a estima expunerea pe raioane.",
     "load": "Încarcă portofoliu",
-    "portfolio_eal": "EAL portofoliu",
+    "parcels_loaded": "Parcele încărcate",
     "parcels_exposed_template": "Parcele expuse la RP{n}",
     "concentration_by_raion": "Concentrare pe raioane"
   },
@@ -68,6 +67,10 @@
   "stamps": {
     "real": "Date reale",
     "proposed": "Propus"
+  },
+  "ui": {
+    "close": "Închide",
+    "proposed_section": "Capacități propuse"
   },
   "basemap": {
     "label": "Fundal",

@@ -23,10 +23,14 @@ all: report
 
 .PHONY: data
 data: $(APP_DATA)/field_attrs.json \
+      $(APP_DATA)/fields.pmtiles \
       $(APP_DATA)/admin.geojson \
       $(APP_DATA)/summary.json \
       $(APP_DATA)/eal.json
 	@echo "✓ precompute complete"
+
+.PHONY: fields-tiles
+fields-tiles: $(APP_DATA)/fields.pmtiles
 
 .PHONY: report
 report: $(REPORT_DATA)/variables.yml
@@ -46,9 +50,16 @@ $(WORK)/jrc/.fetched:
 	$(UV) fetch-jrc
 	@touch $@
 
-$(APP_DATA)/field_attrs.json: $(WORK)/fields.parquet $(WORK)/jrc/.fetched
+# zonal-stats emits field_attrs.json AND _work/fields_attributed.parquet in a
+# single pass (the parquet is a co-product, so it shares this recipe and keeps
+# field IDs aligned with the JSON by construction).
+$(APP_DATA)/field_attrs.json $(WORK)/fields_attributed.parquet &: $(WORK)/fields.parquet $(WORK)/jrc/.fetched
 	@mkdir -p $(APP_DATA)
 	$(UV) zonal-stats
+
+$(APP_DATA)/fields.pmtiles: $(WORK)/fields_attributed.parquet
+	@mkdir -p $(APP_DATA)
+	$(UV) build-fields-tiles
 
 $(APP_DATA)/admin.geojson: $(APP_DATA)/field_attrs.json
 	@mkdir -p $(APP_DATA)
@@ -78,6 +89,7 @@ info:
 clean:
 	rm -rf $(WORK)
 	rm -f $(APP_DATA)/field_attrs.json
+	rm -f $(APP_DATA)/fields.pmtiles
 	rm -f $(APP_DATA)/admin.geojson
 	rm -f $(APP_DATA)/summary.json
 	rm -f $(APP_DATA)/eal.json

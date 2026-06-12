@@ -112,12 +112,20 @@ REPO_ROOT: Final[Path] = PRECOMPUTE_ROOT.parent
 WORK_DIR: Final[Path] = PRECOMPUTE_ROOT / "_work"
 JRC_RASTER_DIR: Final[Path] = WORK_DIR / "jrc"
 FIELDS_PARQUET: Final[Path] = WORK_DIR / "fields.parquet"
+# Geometry + per-RP attributes welded together by zonal-stats; tiled into
+# fields.pmtiles by build-fields-tiles. ID alignment guaranteed by construction.
+FIELDS_ATTRIBUTED_PARQUET: Final[Path] = WORK_DIR / "fields_attributed.parquet"
 ADMIN_RAW: Final[Path] = WORK_DIR / "admin_raw.geojson"
 
 APP_DATA_DIR: Final[Path] = REPO_ROOT / "app" / "public" / "data"
 FIELD_ATTRS_JSON: Final[Path] = APP_DATA_DIR / "field_attrs.json"
+FIELDS_PMTILES: Final[Path] = APP_DATA_DIR / "fields.pmtiles"
 ADMIN_GEOJSON: Final[Path] = APP_DATA_DIR / "admin.geojson"
 SUMMARY_JSON: Final[Path] = APP_DATA_DIR / "summary.json"
+
+# Development geoparquet-io checkout providing the `gpio pmtiles` command
+# (the released 1.1.0b1 lacks it). Used by build-fields-tiles.
+GPIO_DEV_PROJECT: Final[str] = "/home/nissim/Documents/dev/geoparquet-io"
 
 # Attribution string — required by JRC's CC BY 4.0 license.
 ATTRIBUTION: Final[str] = (

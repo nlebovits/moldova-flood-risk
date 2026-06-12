@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store/state';
+import { useData } from '../lib/data';
 import { t, fmtPct } from '../lib/i18n';
-
-// Spec placeholder until precompute (task 2) ships summary.json with the
-// real per-RP100 ag share computed from FTW × JRC zonal stats.
-const HEADLINE_PCT_PLACEHOLDER = 38;
 
 /**
  * On-load headline stat. The number is the only thing in Lagoon; the
  * sentence is in Ponderosa. Fades up 8px / 320ms per spec motion rules.
+ *
+ * The figure is the real RP100 ag share from summary.json (fixed at RP100
+ * per spec — the headline does not follow the RP selector).
  */
 export function HeadlineStat() {
   const { locale } = useApp();
+  const summary = useData((s) => s.summary);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,7 +20,10 @@ export function HeadlineStat() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const pctLabel = fmtPct(locale, HEADLINE_PCT_PLACEHOLDER, 0);
+  // Hold the headline until the real figure is in — no placeholder number.
+  if (!summary) return null;
+
+  const pctLabel = fmtPct(locale, summary.pct_ag_in_rp100_floodplain, 1);
 
   const tmpl = t(locale, 'headline.stat_template', { pct: '__PCT__' });
   // Split at __PCT__ so we can style the number specifically.

@@ -37,17 +37,16 @@
     "cropland_share": "Share of cropland in floodplain"
   },
   "eal": {
-    "title": "Expected Annual Loss (EAL)",
-    "value_exposed": "Value exposed",
-    "damage_curve": "Damage curve",
-    "eal_estimate": "Estimated EAL",
-    "placeholder_tag": "coefficients placeholder — method real",
-    "per_ha_unit": "€ / ha",
-    "per_year_unit": "€ / yr"
+    "title": "Expected annual loss",
+    "national": "National total",
+    "top_raioane": "Highest-risk raioane",
+    "unit_ha_per_year": "ha/yr"
   },
   "portfolio": {
+    "title": "Portfolio",
+    "hint": "Load a portfolio of parcels to estimate exposure by raion.",
     "load": "Load portfolio",
-    "portfolio_eal": "Portfolio EAL",
+    "parcels_loaded": "Parcels loaded",
     "parcels_exposed_template": "Parcels exposed at RP{n}",
     "concentration_by_raion": "Concentration by raion"
   },
@@ -68,6 +67,10 @@
   "stamps": {
     "real": "Real data",
     "proposed": "Proposed"
+  },
+  "ui": {
+    "close": "Close",
+    "proposed_section": "Proposed capabilities"
   },
   "basemap": {
     "label": "Basemap",

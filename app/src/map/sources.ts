@@ -33,6 +33,24 @@ export const FTW_ATTRIBUTION =
   '<a href="https://fieldsofthe.world" target="_blank">Fields of The World</a>';
 
 /**
+ * Moldova field polygons with per-RP flood attributes baked in, tiled by the
+ * precompute pipeline (`make fields-tiles`). Source-layer name is `fields`;
+ * every feature carries `id`, `area_ha`, `pct_inun_{rp}`, `depth_{rp}`,
+ * `min_rp`.
+ *
+ * Single swap point: dev serves the local file from `public/data/`; the
+ * tileset is ~230 MB (too large to commit), so for production point this at a
+ * hosted, range-requestable URL (Source Cooperative / a CDN), e.g.
+ *   'pmtiles://https://data.source.coop/<org>/moldova/fields.pmtiles'
+ */
+export const FIELDS_PMTILES = 'pmtiles:///data/fields.pmtiles';
+
+export const FIELDS_SOURCE_LAYER = 'fields';
+
+/** Moldova raioane with per-RP exposure aggregates (precompute build-admin). */
+export const ADMIN_GEOJSON_URL = '/data/admin.geojson';
+
+/**
  * Overture divisions — admin boundaries at country / region / county /
  * locality. Released ~monthly; we pin a known-good release.
  *
