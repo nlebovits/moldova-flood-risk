@@ -64,3 +64,8 @@ yarn-error.log*
 # code-review-graph (kept; tracks code, not data)
 # ===========================================
 # (intentionally NOT ignored — graph.db helps reviewers)
+
+# Generated data (regenerate with: make data)
+app/public/data/field_attrs.json
+report/data/field_attrs.json
+report/.jupyter_cache/

@@ -1,25 +1,77 @@
 """Step 2: fetch the 12 Moldova-covering JRC GloFAS depth rasters.
 
-Phase 2 — implementation pending.
-
-Approach (planned):
-  For each tile in `const.JRC_MOLDOVA_TILE_IDS` and each RP in
-  `const.RETURN_PERIODS`, construct the URL
-    `{JRC_BASE_URL}/RP{rp}/ID{n}_{name}_RP{rp}_depth.tif`
-  and stream it (with httpx) to `const.JRC_RASTER_DIR`.
-  Skip downloads where the local file's size already matches the
-  server's content-length (idempotent re-runs).
+Downloads rasters from the JRC FTP server if not already cached locally.
+Idempotent: skips files where local size matches remote content-length.
 """
 
 from __future__ import annotations
 
+import click
+import httpx
+
 from . import const
 
 
-def run() -> None:
-    raise NotImplementedError(
-        "fetch_jrc.run is implemented in phase 2.\n"
-        f"Output dir: {const.JRC_RASTER_DIR}\n"
-        f"Tiles: {[t[1] for t in const.JRC_MOLDOVA_TILE_IDS]}\n"
-        f"RPs:   {const.RETURN_PERIODS}"
+def _build_url(tile_id: int, tile_name: str, rp: int) -> str:
+    """Construct the JRC download URL for a single raster."""
+    return (
+        f"{const.JRC_BASE_URL}/RP{rp}/"
+        f"ID{tile_id}_{tile_name}_RP{rp}_depth.tif"
     )
+
+
+def _download_one(url: str, dest: const.Path, client: httpx.Client) -> bool:
+    """Download a single raster. Returns True if downloaded, False if skipped."""
+    if dest.exists() and dest.stat().st_size > 1_000_000:
+        return False
+
+    try:
+        head = client.head(url, follow_redirects=True)
+        head.raise_for_status()
+        remote_size = int(head.headers.get("content-length", 0))
+
+        if dest.exists() and dest.stat().st_size == remote_size:
+            return False
+    except httpx.HTTPStatusError:
+        if dest.exists():
+            return False
+        raise
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with client.stream("GET", url, follow_redirects=True) as resp:
+        resp.raise_for_status()
+        with open(dest, "wb") as f:
+            for chunk in resp.iter_bytes(chunk_size=1024 * 1024):
+                f.write(chunk)
+    return True
+
+
+def run() -> None:
+    """Download all 12 JRC rasters (2 tiles x 6 RPs) for Moldova."""
+    const.JRC_RASTER_DIR.mkdir(parents=True, exist_ok=True)
+
+    tasks = [
+        (tile_id, tile_name, rp)
+        for tile_id, tile_name in const.JRC_MOLDOVA_TILE_IDS
+        for rp in const.RETURN_PERIODS
+    ]
+
+    click.echo(f"Checking {len(tasks)} JRC rasters...")
+
+    downloaded = 0
+    skipped = 0
+
+    with httpx.Client(timeout=300) as client:
+        for tile_id, tile_name, rp in tasks:
+            url = _build_url(tile_id, tile_name, rp)
+            filename = f"ID{tile_id}_{tile_name}_RP{rp}_depth.tif"
+            dest = const.JRC_RASTER_DIR / filename
+
+            if _download_one(url, dest, client):
+                click.echo(f"  Downloaded: {filename}")
+                downloaded += 1
+            else:
+                skipped += 1
+
+    click.echo(f"Done: {downloaded} downloaded, {skipped} already cached.")
+    click.echo(f"Output dir: {const.JRC_RASTER_DIR}")

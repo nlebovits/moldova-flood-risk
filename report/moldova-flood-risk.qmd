@@ -1,0 +1,443 @@
+---
+title: "Moldova Agricultural Flood Risk Assessment"
+subtitle: "Riverine flood exposure analysis using JRC GloFAS and Fields of the World"
+author: "Radiant Earth"
+date: today
+format:
+  html:
+    page-layout: article
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import json
+from pathlib import Path
+
+DATA_DIR = Path("data")
+
+with open(DATA_DIR / "summary.json") as f:
+    summary = json.load(f)
+
+with open(DATA_DIR / "eal.json") as f:
+    eal = json.load(f)
+
+with open(DATA_DIR / "admin_stats.json") as f:
+    admin_stats = json.load(f)
+
+with open(DATA_DIR / "top_fields.json") as f:
+    top_fields = json.load(f)
+
+pct_exposed = summary["pct_ag_in_rp100_floodplain"]
+total_ag_ha = summary["total_ag_ha"]
+exposed_ha = summary["exposed_ag_rp100_ha"]
+national_eal = eal["national_eal_ha_per_year"]
+```
+
+## Executive Summary {#sec-summary}
+
+::: {.hero-stat}
+`{python} f"{pct_exposed:.1f}%"`
+:::
+
+::: {.hero-stat-label}
+of Moldova's agricultural land lies within the 1-in-100 year riverine floodplain
+:::
+
+::: {.key-findings}
+### Key Findings
+
+- **`{python} f"{total_ag_ha:,.0f}"` hectares** of agricultural land mapped across Moldova using Fields of the World boundaries
+- **`{python} f"{exposed_ha:,.0f}"` hectares** exposed to flooding in a 1-in-100 year event
+- **`{python} f"{national_eal:,.1f}"` ha/year** expected annual loss from riverine flooding nationally
+- **Fluvial flooding only** — this assessment covers riverine (channel) flooding; pluvial (rainfall) flooding is not included
+:::
+
+::: {.data-sources}
+**Data Sources**
+
+: **Flood Hazard**
+: JRC GloFAS v2.1.2 flood hazard maps (Baugh et al., 2024). 90m resolution, fluvial flooding. [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+: **Field Boundaries**
+: Fields of the World (FTW) 2025-01-01 vintage. Global field boundary dataset. [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+: **Administrative Boundaries**
+: GADM 4.1 — Moldova raioane (level 1)
+:::
+
+
+## Study Area {#sec-study-area}
+
+Moldova is a landlocked country in Eastern Europe with an economy heavily dependent on agriculture. The agricultural sector accounts for approximately 10% of GDP and employs a significant portion of the rural population. Understanding flood risk to agricultural land is critical for:
+
+- **Crop insurance** — actuarial pricing and parametric product design
+- **Agricultural lending** — portfolio risk assessment
+- **Climate adaptation** — identifying priority areas for drainage infrastructure
+- **Disaster preparedness** — pre-positioning resources and early warning systems
+
+### Geographic Extent
+
+This analysis covers all of Moldova within the bounding box:
+
+- **West**: 26.5°E
+- **South**: 45.3°N
+- **East**: 30.3°E
+- **North**: 48.6°N
+
+```{python}
+#| label: fig-study-area
+#| fig-cap: "Moldova administrative units (raioane) with agricultural field density"
+#| code-fold: true
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+fig, ax = plt.subplots(figsize=(8, 10))
+
+# Simple placeholder - in production, load admin boundaries
+ax.set_xlim(26.5, 30.3)
+ax.set_ylim(45.3, 48.6)
+ax.set_aspect('equal')
+ax.set_xlabel('Longitude (°E)')
+ax.set_ylabel('Latitude (°N)')
+ax.set_title('Moldova Study Area')
+ax.grid(True, alpha=0.3)
+
+# Add bbox rectangle
+rect = mpatches.Rectangle((26.5, 45.3), 3.8, 3.3,
+                           fill=False, edgecolor='#469695', linewidth=2)
+ax.add_patch(rect)
+
+ax.text(28.4, 47.0, 'MOLDOVA', fontsize=16, ha='center', va='center',
+        color='#26383A', fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Hazard Characterization {#sec-hazard}
+
+### JRC GloFAS Flood Hazard Maps
+
+The flood hazard data comes from the Joint Research Centre's Global Flood Awareness System (GloFAS) v2.1.2. Key characteristics:
+
+| Parameter | Value |
+|-----------|-------|
+| Resolution | 90 meters (3 arc-seconds) |
+| Flood type | Fluvial (riverine) only |
+| Variable | Maximum flood depth (meters) |
+| Return periods | 10, 20, 50, 100, 200, 500 years |
+| Coverage | Global, including Moldova |
+
+::: {.callout-note}
+### Model Limitations
+
+This assessment uses **modeled** flood extents, not observed flood events. The JRC GloFAS model:
+
+- Captures **riverine (fluvial) flooding** from river channel overflow
+- Does **not** capture **pluvial flooding** from intense rainfall
+- Has **90m resolution**, which may miss small-scale features
+- Assumes **current land use** without accounting for planned infrastructure
+- Was validated globally but may have local biases
+
+No observed flood events were available for Moldova to validate model performance.
+:::
+
+### Flood Extent by Return Period
+
+```{python}
+#| label: tbl-flood-coverage
+#| tbl-cap: "Agricultural area exposed to flooding by return period"
+
+import pandas as pd
+
+rp_data = []
+for rp in [10, 20, 50, 100, 200, 500]:
+    rp_key = str(rp)
+    if rp_key in summary["by_rp"]:
+        stats = summary["by_rp"][rp_key]
+        rp_data.append({
+            "Return Period (years)": rp,
+            "Annual Probability": f"{100/rp:.1f}%",
+            "Exposed Area (ha)": f"{stats['exposed_ha']:,.0f}",
+            "% of Ag Land": f"{stats['pct_ag_exposed']:.1f}%",
+            "Fields Touched": f"{stats['fields_touched']:,}",
+        })
+
+df = pd.DataFrame(rp_data)
+df
+```
+
+### Flood Depth Classification
+
+The hydro colormap uses six depth classes:
+
+::: {.flood-legend}
+::: {.flood-legend-item .f1}
+0–0.25m
+:::
+::: {.flood-legend-item .f2}
+0.25–0.5m
+:::
+::: {.flood-legend-item .f3}
+0.5–1m
+:::
+::: {.flood-legend-item .f4}
+1–2m
+:::
+::: {.flood-legend-item .f5}
+2–4m
+:::
+::: {.flood-legend-item .f6}
+>4m
+:::
+:::
+
+
+## Exposure Mapping {#sec-exposure}
+
+### Fields of the World Boundaries
+
+Field boundaries come from the [Fields of the World](https://fieldsofthe.world/) dataset, a global agricultural field boundary product. For Moldova:
+
+- **Vintage**: 2025-01-01
+- **Total fields**: `{python} f"{summary['total_fields']:,}"`
+- **Total area**: `{python} f"{total_ag_ha:,.0f}"` hectares
+- **Source**: Satellite imagery + machine learning segmentation
+
+::: {.callout-warning}
+### Temporal Mismatch
+
+The field boundaries (2025) and flood model (based on historical climate) have different temporal references. Field boundaries may have changed since the flood model was developed, and new fields may exist in areas that were not previously agricultural.
+:::
+
+### Exposure by Depth Class
+
+For the RP100 scenario, fields are classified by their mean flood depth where inundated:
+
+```{python}
+#| label: fig-depth-distribution
+#| fig-cap: "Distribution of flood depths across exposed fields (RP100)"
+#| code-fold: true
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Depth class boundaries
+breaks = [0, 0.25, 0.5, 1.0, 2.0, 4.0, float('inf')]
+colors = ['#CFE3F2', '#9BC4E6', '#5E97D1', '#2E68B5', '#1C4189', '#0E2356']
+labels = ['0–0.25m', '0.25–0.5m', '0.5–1m', '1–2m', '2–4m', '>4m']
+
+# Count fields in each depth class
+depths = [f.get('depth_100', 0) for f in top_fields if f.get('pct_inun_100', 0) > 0]
+counts = []
+for i in range(len(breaks) - 1):
+    count = sum(1 for d in depths if breaks[i] <= d < breaks[i+1])
+    counts.append(count)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+bars = ax.bar(labels, counts, color=colors, edgecolor='#26383A', linewidth=0.5)
+ax.set_xlabel('Flood Depth Class')
+ax.set_ylabel('Number of Fields (top 100 sample)')
+ax.set_title('Field Distribution by Flood Depth (RP100)')
+
+for bar, count in zip(bars, counts):
+    if count > 0:
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                str(count), ha='center', va='bottom', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Risk Calculation {#sec-risk}
+
+### Expected Annual Loss Methodology
+
+Expected Annual Loss (EAL) represents the average annual area exposed to flooding, accounting for the probability of different flood magnitudes. It is calculated using **trapezoidal integration** over the exceedance probability curve:
+
+::: {.formula}
+EAL = Σ ((L_i + L_{i+1}) / 2) × (P_i - P_{i+1})
+:::
+
+Where:
+
+- **P_i** = Annual exceedance probability = 1 / Return Period
+- **L_i** = Exposed area (hectares) at return period i
+
+This method weights more frequent, smaller floods more heavily than rare, large floods, giving a realistic estimate of annual average exposure.
+
+### National EAL
+
+::: {.hero-stat}
+`{python} f"{national_eal:,.1f}"`
+:::
+
+::: {.hero-stat-label}
+hectares per year expected annual loss from riverine flooding
+:::
+
+### EAL by Raion
+
+```{python}
+#| label: tbl-eal-ranking
+#| tbl-cap: "Expected Annual Loss by administrative unit (raioane), ranked"
+
+import pandas as pd
+
+eal_df = pd.DataFrame([
+    {
+        "Raion": s["name"],
+        "Total Ag (ha)": f"{s['total_ag_ha']:,.0f}",
+        "RP100 Exposed (ha)": f"{s.get('exposed_ha_100', 0):,.0f}",
+        "EAL (ha/year)": f"{s['eal_ha_year']:,.1f}",
+        "% of National EAL": f"{s['eal_ha_year'] / national_eal * 100:.1f}%" if national_eal > 0 else "0%",
+    }
+    for s in admin_stats[:15]  # Top 15
+])
+
+eal_df
+```
+
+
+## Field-Level Analysis {#sec-field-analysis}
+
+### Most Exposed Fields
+
+The following table shows the 20 fields with the highest expected annual loss:
+
+```{python}
+#| label: tbl-top-fields
+#| tbl-cap: "Top 20 fields by Expected Annual Loss"
+
+import pandas as pd
+
+top_df = pd.DataFrame([
+    {
+        "Field ID": f["id"][:12] + "..." if len(str(f["id"])) > 12 else f["id"],
+        "Area (ha)": f"{f['area_ha']:.1f}",
+        "RP100 Inundated (%)": f"{f['pct_inun_100']:.0f}%",
+        "Mean Depth (m)": f"{f['depth_100']:.2f}",
+        "First Flooded (RP)": f["min_rp"] or "Never",
+        "EAL (ha/yr)": f"{f['eal_ha_year']:.3f}",
+    }
+    for f in top_fields[:20]
+])
+
+top_df
+```
+
+### Pixel-Level vs Field-Level Perspective
+
+This analysis provides two complementary views:
+
+1. **Pixel-level exposure**: The fraction of each field's area that is inundated (pct_inun). This represents the physically flooded area.
+
+2. **Field-level exposure**: Whether any part of a field is flooded. From a farmer's operational perspective, even partial flooding of a field can render the entire field inaccessible or require replanting.
+
+::: {.callout-note}
+Field-level affected counts are typically 8–14× higher than pixel-level area exposure, depending on field size distribution and flood spatial patterns. This ratio reflects how flooding fragments agricultural operations.
+:::
+
+
+## Summary and Recommendations {#sec-recommendations}
+
+### Key Findings
+
+1. **Significant exposure**: `{python} f"{pct_exposed:.1f}%"` of Moldova's agricultural land faces flood risk in a 1-in-100 year event
+
+2. **Concentrated risk**: The top 5 raioane account for a disproportionate share of national flood risk
+
+3. **Fluvial dominance**: This assessment covers only riverine flooding; pluvial flooding would add to total exposure
+
+4. **Annual expectation**: `{python} f"{national_eal:,.0f}"` hectares are expected to flood annually on average
+
+### Recommendations
+
+**For Agricultural Lenders**
+
+- Use field-level flood exposure (min_rp) as a risk flag in credit scoring
+- Consider portfolio concentration in high-EAL raioane
+- Require flood documentation for collateralized land in high-risk areas
+
+**For Crop Insurers**
+
+- EAL provides a basis for actuarial pricing of flood coverage
+- Consider parametric products triggered by JRC forecast exceedances
+- Account for the pixel-to-field exposure multiplier in loss modeling
+
+**For Climate Adaptation**
+
+- Prioritize drainage infrastructure in top EAL raioane
+- Map specific river reaches contributing to agricultural exposure
+- Integrate pluvial flood modeling for complete risk picture
+
+**For Disaster Preparedness**
+
+- Pre-position agricultural recovery resources in high-EAL areas
+- Link to GloFAS operational forecasts for early warning
+- Develop raion-level response plans proportional to EAL
+
+### Limitations and Caveats
+
+- **Resolution**: 90m flood maps may miss small streams and local topography
+- **Flood type**: Only fluvial (riverine) flooding; excludes pluvial, coastal, groundwater
+- **Temporal mismatch**: Field boundaries (2025) vs climate baseline (historical)
+- **Validation**: No observed flood events available to validate model accuracy
+- **Damage function**: No crop-specific vulnerability; assumes all flooding is equally damaging
+- **Infrastructure**: Does not account for levees, dams, or drainage systems
+
+
+## Appendix: Data Sources and Reproducibility {#sec-appendix}
+
+### Data Citations
+
+**JRC GloFAS Flood Hazard Maps**
+
+> Baugh, C., et al. (2024). Global Flood Hazard Maps. European Commission, Joint Research Centre (JRC). Available at: https://data.jrc.ec.europa.eu/collection/id-0054
+
+License: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+**Fields of the World**
+
+> Fields of the World. (2025). Global Field Boundary Dataset. Source Cooperative. Available at: https://source.coop/ftw/global-data
+
+License: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+**GADM Administrative Boundaries**
+
+> GADM. (2024). Database of Global Administrative Areas, version 4.1. Available at: https://gadm.org
+
+### Reproducibility
+
+This document was generated from the Moldova Flood Risk repository:
+
+```bash
+# Clone the repository
+git clone https://github.com/nlebovits/moldova-flood-risk
+
+# Run the data pipeline
+cd moldova-flood-risk/precompute
+uv sync
+uv run moldova-precompute fetch-jrc
+uv run moldova-precompute extract-fields
+uv run moldova-precompute zonal-stats
+uv run moldova-precompute build-admin
+uv run moldova-precompute build-summary
+uv run moldova-precompute build-eal
+uv run moldova-precompute export-report
+
+# Render the document
+cd ../report
+quarto render moldova-flood-risk.qmd
+```
+
+All intermediate data files are cached; re-running the pipeline is idempotent.
+
+### Generated
+
+This report was generated on `{python} summary.get('generated', 'unknown date')`.

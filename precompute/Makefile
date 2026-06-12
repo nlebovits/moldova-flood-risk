@@ -7,6 +7,7 @@
 #
 # Usage:
 #   make data        # full pipeline → ships JSON into ../app/public/data/
+#   make report      # full pipeline + render Quarto HTML
 #   make info        # print resolved paths and constants
 #   make clean       # delete _work/ and shipped JSON (keeps lockfile)
 #   make clean-jrc   # delete cached JRC rasters only
@@ -15,12 +16,22 @@
 UV := uv run moldova-precompute
 WORK := _work
 APP_DATA := ../app/public/data
+REPORT_DATA := ../report/data
+
+.PHONY: all
+all: report
 
 .PHONY: data
 data: $(APP_DATA)/field_attrs.json \
       $(APP_DATA)/admin.geojson \
-      $(APP_DATA)/summary.json
+      $(APP_DATA)/summary.json \
+      $(APP_DATA)/eal.json
 	@echo "✓ precompute complete"
+
+.PHONY: report
+report: $(REPORT_DATA)/variables.yml
+	cd ../report && quarto render moldova-flood-risk.qmd
+	@echo "✓ report generated at ../report/_site/moldova-flood-risk.html"
 
 # ---------------------------------------------------------
 # Phase outputs
@@ -47,6 +58,14 @@ $(APP_DATA)/summary.json: $(APP_DATA)/field_attrs.json
 	@mkdir -p $(APP_DATA)
 	$(UV) build-summary
 
+$(APP_DATA)/eal.json: $(APP_DATA)/admin.geojson
+	@mkdir -p $(APP_DATA)
+	$(UV) build-eal
+
+$(REPORT_DATA)/variables.yml: $(APP_DATA)/eal.json $(APP_DATA)/summary.json
+	@mkdir -p $(REPORT_DATA)
+	$(UV) export-report
+
 # ---------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------
@@ -61,7 +80,15 @@ clean:
 	rm -f $(APP_DATA)/field_attrs.json
 	rm -f $(APP_DATA)/admin.geojson
 	rm -f $(APP_DATA)/summary.json
+	rm -f $(APP_DATA)/eal.json
+	rm -rf $(REPORT_DATA)
+	rm -rf ../report/_site
 
 .PHONY: clean-jrc
 clean-jrc:
 	rm -rf $(WORK)/jrc
+
+.PHONY: clean-report
+clean-report:
+	rm -rf $(REPORT_DATA)
+	rm -rf ../report/_site

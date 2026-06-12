@@ -1,0 +1,13 @@
+data_sources:
+  admin_boundaries: GADM 4.1
+  field_boundaries: Fields of the World 2025-01-01 (CC BY 4.0)
+  flood_hazard: JRC GloFAS v2.1.2 (CC BY 4.0)
+exposed_ha_100: 81587.1
+fields_touched_100: 6259
+generated_date: '2026-06-12'
+national_eal: 96.52
+pct_ag_floodplain: 2.18
+top_raion: Nisporeni
+top_raion_eal: 36.1
+total_ag_ha: 3734360.6
+total_fields: 628685

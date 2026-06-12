@@ -87,9 +87,30 @@ def build_summary_cmd() -> None:
     """Build the headline summary JSON (RP100 ag share + totals).
 
     Output: ``app/public/data/summary.json``.
-    Phase 2 work — implementation pending.
     """
     from .build_summary import run
+
+    run()
+
+
+@cli.command("build-eal")
+def build_eal_cmd() -> None:
+    """Compute Expected Annual Loss via trapezoidal integration.
+
+    Output: ``app/public/data/eal.json``.
+    """
+    from .build_eal import run
+
+    run()
+
+
+@cli.command("export-report")
+def export_report_cmd() -> None:
+    """Export all data for the Quarto report.
+
+    Output: ``report/data/*.json`` + ``report/data/variables.yml``.
+    """
+    from .export_report_data import run
 
     run()
 
