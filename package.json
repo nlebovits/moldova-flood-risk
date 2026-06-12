@@ -1,0 +1,6 @@
+{
+  "name": "moldova-flood-risk",
+  "private": true,
+  "description": "Repo-root marker so Vercel provisions the right pnpm (the app lives in app/).",
+  "packageManager": "pnpm@10.12.4"
+}

@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Static demo: agricultural flood-risk map of the Republic of Moldova.",
+  "packageManager": "pnpm@10.12.4",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

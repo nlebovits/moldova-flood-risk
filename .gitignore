@@ -78,3 +78,4 @@ app/public/data/jrc/
 app/public/data/fields.pmtiles
 report/data/field_attrs.json
 report/.jupyter_cache/
+.vercel

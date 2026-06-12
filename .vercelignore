@@ -1,0 +1,13 @@
+# Only app/ + i18n/ are needed to build the static site. Everything below is
+# either huge regenerable data (now hosted on Source Cooperative), the offline
+# precompute pipeline, or private assets — none belong in the deploy upload.
+**/node_modules
+precompute
+report
+design-reference
+app/dist
+
+# Large data artifacts — served from Source Cooperative at runtime, not bundled.
+app/public/data/field_attrs.json
+app/public/data/fields.pmtiles
+app/public/data/jrc
