@@ -12,8 +12,7 @@ app/public/data/field_attrs.json
 app/public/data/fields.pmtiles
 app/public/data/jrc
 
-# Licensed fonts are symlinks into design-reference/fonts/ (gitignored, must
-# stay private). On a fresh checkout those symlinks dangle and Rolldown errors
-# reading them. Excluding the dir lets the build treat /fonts/* as runtime URLs
-# and fall back to the Fraunces/Inter web fonts (imported in tokens.css).
+# Licensed fonts are private symlinks into design-reference/fonts/; the app now
+# ships free Google Fonts analogs (Space Grotesk / Inter / IBM Plex Mono), so
+# these aren't referenced by the build and don't belong in the deploy.
 app/public/fonts

@@ -13,113 +13,17 @@
    When the canonical file changes, mirror the change here.
    ========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+/* Free, open-licensed web fonts standing in for the licensed brand faces:
+     Space Grotesk ≈ Vert Grotesk Display, Inter ≈ Neue Swiss,
+     IBM Plex Mono ≈ Berkeley Mono.
+   Loaded from Google Fonts so the build needs no local font binaries (the
+   licensed faces stay private in design-reference/, never deployed). */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300..700&display=swap");
 
-/* === Vert Grotesk Display === */
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplayVF.ttf") format("truetype-variations"),
-       url("/fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplay-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplay-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplay-Medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplay-Semibold.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vert Grotesk Display";
-  src: url("/fonts/VertGroteskDisplay-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* === Neue Swiss === */
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Italic.ttf") format("truetype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Semibold.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Neue Swiss";
-  src: url("/fonts/NeueSwiss-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* === Berkeley Mono === */
-@font-face {
-  font-family: "Berkeley Mono";
-  src: url("/fonts/BerkeleyMono-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Berkeley Mono";
-  src: url("/fonts/BerkeleyMono-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* The licensed brand faces (Vert Grotesk Display, Neue Swiss, Berkeley Mono)
+   are provided by Google Fonts analogs above, so no local @font-face blocks
+   are needed. The font-family stacks below still name the brand faces first,
+   so a licensed local install (design-reference/fonts/) is used when present. */
 
 /* =========================================================
    Token variables (LIGHT theme defaults)
@@ -192,9 +96,9 @@
   --c-field-stroke: rgba(38, 56, 58, 0.28);
 
   /* ---- Type families ----------------------------------- */
-  --font-display: "Vert Grotesk Display", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-display: "Vert Grotesk Display", "Space Grotesk", system-ui, sans-serif;
   --font-body:    "Neue Swiss", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono:    "Berkeley Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-mono:    "Berkeley Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* ---- Type scale -------------------------------------- */
   --fs-12:  0.75rem;

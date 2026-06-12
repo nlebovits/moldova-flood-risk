@@ -76,8 +76,8 @@
 
   /* === Fonts === */
   --font-sans:              var(--font-body);
-  --font-display:           "Vert Grotesk Display", "Fraunces", Georgia, "Times New Roman", serif;
-  --font-mono:              "Berkeley Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display:           "Vert Grotesk Display", "Space Grotesk", system-ui, sans-serif;
+  --font-mono:              "Berkeley Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* === Radii — ALL ZERO (spec: no rounded corners anywhere) === */
   --radius:                 0px;
