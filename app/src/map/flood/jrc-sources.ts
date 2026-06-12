@@ -10,16 +10,17 @@
  *   Resolution: 90 m (~3 arc-seconds)
  *   Return periods: 10, 20, 50, 100, 200, 500 years
  *
- * Single swap point: dev serves the local files from `public/data/jrc/`; the
- * six COGs total ~40 MB (too large to commit), so for production point
- * `JRC_COG_BASE` at a hosted, range-requestable URL (Source Cooperative / a CDN),
- * e.g. 'https://data.source.coop/<org>/moldova-test-data/jrc'.
+ * Single swap point: the six COGs (~40 MB) are too large to commit, so they're
+ * hosted on Source Cooperative and served range-requestable + CORS-open from
+ * its read CDN. For local-only work, point `JRC_COG_BASE` back at '/data/jrc'
+ * (the files are also written there by `make flood-cogs`).
  */
 
 import type { RP } from '../../store/state';
 
-/** Base URL for the per-RP flood-depth COGs. */
-export const JRC_COG_BASE = '/data/jrc';
+/** Base URL for the per-RP flood-depth COGs (Source Cooperative read CDN). */
+export const JRC_COG_BASE =
+  'https://data.source.coop/nlebovits/moldova-test-data/jrc';
 
 /**
  * Build the URL for a JRC flood-depth COG at a given return period.

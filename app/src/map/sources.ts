@@ -38,12 +38,14 @@ export const FTW_ATTRIBUTION =
  * every feature carries `id`, `area_ha`, `pct_inun_{rp}`, `depth_{rp}`,
  * `min_rp`.
  *
- * Single swap point: dev serves the local file from `public/data/`; the
- * tileset is ~230 MB (too large to commit), so for production point this at a
- * hosted, range-requestable URL (Source Cooperative / a CDN), e.g.
- *   'pmtiles://https://data.source.coop/<org>/moldova/fields.pmtiles'
+ * Single swap point: the tileset is ~230 MB (too large to commit), so it's
+ * hosted on Source Cooperative and streamed range-requestable + CORS-open from
+ * its read CDN. For local-only work, point this back at
+ * 'pmtiles:///data/fields.pmtiles' (the file is also written there by
+ * `make fields-tiles`).
  */
-export const FIELDS_PMTILES = 'pmtiles:///data/fields.pmtiles';
+export const FIELDS_PMTILES =
+  'pmtiles://https://data.source.coop/nlebovits/moldova-test-data/fields.pmtiles';
 
 export const FIELDS_SOURCE_LAYER = 'fields';
 
