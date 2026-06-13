@@ -1,6 +1,6 @@
 import { useApp, RPS } from '../store/state';
 import { t, fmtPct, fmtDepth, fmtHa } from '../lib/i18n';
-import { fieldPct, fieldDepth } from '../lib/types';
+import { fieldPct, fieldDepth, fieldAreaHa } from '../lib/types';
 import { cn } from '../lib/utils';
 
 /**
@@ -18,7 +18,7 @@ export function FieldPanel() {
         <div>
           <div className="re-eyebrow">{t(locale, 'field_panel.title')}</div>
           <div className="re-meta mt-0.5 font-mono">
-            #{selectedField.id} · {fmtHa(locale, selectedField.area_ha)}
+            #{selectedField.id} · {fmtHa(locale, fieldAreaHa(selectedField))}
           </div>
         </div>
         <button

@@ -44,14 +44,26 @@ export interface AdminProps {
   [key: string]: string | number;
 }
 
-/** Properties baked into each fields.pmtiles feature. */
+/**
+ * Properties baked into each fields.pmtiles feature.
+ *
+ * Numeric attributes are quantized to integers in the tile (cheap MVT varints):
+ * `area_ha` is in ares (ha × 100) and `depth_{rp}` in millimetres (m × 1000).
+ * Always read them through the accessors below, which un-scale to ha / metres.
+ * Keep these factors in sync with precompute/.../const.py TILE_*_SCALE.
+ */
 export interface FieldProps {
   id: number;
+  /** Field area in ares (ha × 100). Use {@link fieldAreaHa} for hectares. */
   area_ha: number;
   min_rp: number;
-  // Per-RP columns: pct_inun_{rp}, depth_{rp}.
+  // Per-RP columns: pct_inun_{rp} (0/100), depth_{rp} (millimetres).
   [key: string]: number;
 }
+
+/** Tile quantization factors — must match const.py TILE_*_SCALE. */
+const TILE_DEPTH_SCALE = 1000; // millimetres → metres
+const TILE_AREA_SCALE = 100; // ares → hectares
 
 /** A row of the bundled sample portfolio CSV (PROPOSED stub). */
 export interface Parcel {
@@ -65,8 +77,12 @@ export interface Parcel {
 /** Typed accessors for per-RP attributes (avoid scattering template strings). */
 export const fieldPct = (f: FieldProps, rp: RP): number =>
   Number(f[`pct_inun_${rp}`] ?? 0);
+/** Mean inundation depth in metres (tile stores millimetres). */
 export const fieldDepth = (f: FieldProps, rp: RP): number =>
-  Number(f[`depth_${rp}`] ?? 0);
+  Number(f[`depth_${rp}`] ?? 0) / TILE_DEPTH_SCALE;
+/** Field area in hectares (tile stores ares). */
+export const fieldAreaHa = (f: FieldProps): number =>
+  Number(f.area_ha ?? 0) / TILE_AREA_SCALE;
 export const adminExposedHa = (a: AdminProps, rp: RP): number =>
   Number(a[`exposed_ha_${rp}`] ?? 0);
 export const adminFieldsTouched = (a: AdminProps, rp: RP): number =>

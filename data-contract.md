@@ -18,13 +18,21 @@ field polygon):
 
 | attribute | type | notes |
 |---|---|---|
-| `id` | string | stable field id |
-| `area_ha` | number | field area, hectares |
-| `pct_inun_10` … `pct_inun_500` | number 0–100 | % of field area inundated at each RP |
-| `depth_10` … `depth_500` | number | mean inundation depth (m) at each RP |
+| `id` | int | stable field id |
+| `area_ha` | int | field area, in **ares** (ha × 100) — quantized for the tile |
+| `pct_inun_10` … `pct_inun_500` | int 0 or 100 | inundated (100) or not (0) at each RP |
+| `depth_10` … `depth_500` | int | mean inundation depth in **millimetres** (m × 1000) at each RP |
 | `min_rp` | int | lowest RP at which the field is inundated (for a future "severity" view) |
 
 RPs: **10, 20, 50, 100, 200, 500**.
+
+> **Tile encoding.** Float attributes are quantized to integers *in the tile only*
+> — MVT stores integers as cheap deduplicating varints but every non-integer as an
+> 8-byte double, which otherwise bloats tiles and forces `--drop-densest-as-needed`
+> to delete most fields at low zoom. The analytical `fields_attributed.parquet`
+> keeps SI floats (metres, hectares); the front-end un-scales on read via the
+> `fieldDepth` / `fieldAreaHa` accessors (`app/src/lib/types.ts`). Scale factors
+> live in `precompute/.../const.py` (`TILE_DEPTH_SCALE`, `TILE_AREA_SCALE`).
 
 The map colors each field by `depth_{selectedRP}` through the Hydro ramp (see class breaks
 below). Fields with no inundation at the selected RP render unfilled (hairline outline only).

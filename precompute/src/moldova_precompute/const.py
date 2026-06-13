@@ -115,6 +115,10 @@ FIELDS_PARQUET: Final[Path] = WORK_DIR / "fields.parquet"
 # Geometry + per-RP attributes welded together by zonal-stats; tiled into
 # fields.pmtiles by build-fields-tiles. ID alignment guaranteed by construction.
 FIELDS_ATTRIBUTED_PARQUET: Final[Path] = WORK_DIR / "fields_attributed.parquet"
+# Tile-prep copy of the above with float attributes quantized to integers
+# (see TILE_*_SCALE below). Keeps the analytical parquet pure (meters / ha,
+# float) while the tiled artifact carries cheap varint integers.
+FIELDS_TILES_PARQUET: Final[Path] = WORK_DIR / "fields_tiles.parquet"
 ADMIN_RAW: Final[Path] = WORK_DIR / "admin_raw.geojson"
 
 APP_DATA_DIR: Final[Path] = REPO_ROOT / "app" / "public" / "data"
@@ -125,6 +129,19 @@ FIELDS_PMTILES: Final[Path] = APP_DATA_DIR / "fields.pmtiles"
 JRC_COG_DIR: Final[Path] = APP_DATA_DIR / "jrc"
 ADMIN_GEOJSON: Final[Path] = APP_DATA_DIR / "admin.geojson"
 SUMMARY_JSON: Final[Path] = APP_DATA_DIR / "summary.json"
+
+# ---------------------------------------------------------------------------
+# Tile attribute quantization (build-fields-tiles)
+# ---------------------------------------------------------------------------
+# MVT stores attribute values in a per-tile deduplicated pool: integers are
+# varints (1–2 bytes for small magnitudes) while any non-integer is an 8-byte
+# double. So we quantize the float attributes to integers *in the tile only*
+# — depth metres → integer millimetres, area hectares → integer ares — which
+# turns 8-byte doubles into cheap varints and lets the pool dedupe. The
+# front-end un-scales by the same factors on click (see app/src/lib/types.ts).
+# Keep these two in sync with the TS constants.
+TILE_DEPTH_SCALE: Final[int] = 1000  # metres → millimetres (depth_{rp})
+TILE_AREA_SCALE: Final[int] = 100  # hectares → ares (area_ha)
 
 # Development geoparquet-io checkout providing the `gpio pmtiles` command
 # (the released 1.1.0b1 lacks it). Used by build-fields-tiles.

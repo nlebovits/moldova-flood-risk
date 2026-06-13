@@ -36,7 +36,8 @@ export const FTW_ATTRIBUTION =
  * Moldova field polygons with per-RP flood attributes baked in, tiled by the
  * precompute pipeline (`make fields-tiles`). Source-layer name is `fields`;
  * every feature carries `id`, `area_ha`, `pct_inun_{rp}`, `depth_{rp}`,
- * `min_rp`.
+ * `min_rp`. Numeric attrs are quantized to integers in the tile (area in
+ * ares, depth in mm) — read them via the un-scaling accessors in `lib/types`.
  *
  * Single swap point: the tileset is ~230 MB (too large to commit), so it's
  * hosted on Source Cooperative and streamed range-requestable + CORS-open from
