@@ -1,0 +1,43 @@
+# =============================================================================
+# Country / area-of-interest configuration for the flood-risk pipeline.
+#
+# This is the ONE file to edit when porting the demo to a new country. Change
+# the values here, then re-run `make data`. Moldova is the worked example.
+# See ../PORTING.md for the full checklist (this file + a couple of frontend
+# strings + the data CDN base).
+#
+# Everything below that can be derived from the bbox (UTM zone, JRC tiles,
+# initial map view) is derived automatically when left blank/null.
+# =============================================================================
+
+country:
+  name: "Republic of Moldova"   # English display name (docs / reference)
+  iso: "MD"                      # ISO 3166-1 alpha-2 — Overture admin filter
+  # Area of interest, EPSG:4326 [west, south, east, north]. A ~0.1° buffer
+  # beyond the national border keeps border-touching fields from being clipped.
+  bbox: [26.5, 45.3, 30.3, 48.6]
+
+admin:
+  # Pin to the same Overture release the frontend's divisions.pmtiles uses
+  # (OVERTURE_DIVISIONS_RELEASE in app/src/map/sources.ts) — keep in sync.
+  overture_release: "2026-05-20.0"
+  # Overture division subtype that maps to the country's first administrative
+  # level (Moldova: "region" = raioane). Other options: "county", etc.
+  overture_subtype: "region"
+
+hazard:
+  # JRC GloFAS tiles covering the bbox: [[id, "Nlat_Elon"], ...].
+  # Leave empty ([]) to auto-derive from the bbox via the JRC
+  # tile_extents.geojson grid. Run `uv run moldova-precompute info` to see the
+  # resolved tiles for the current bbox.
+  jrc_tile_ids: [[134, "N50_E20"], [146, "N50_E30"]]
+
+projection:
+  # Metric CRS (EPSG code) for field-area calculation. Leave null to auto-derive
+  # the UTM zone from the bbox centroid (Moldova → 32635 / UTM 35N).
+  utm_epsg: null
+
+ui:
+  # Camera zoom window surfaced to the frontend via summary.json.
+  min_zoom: 5
+  max_zoom: 14

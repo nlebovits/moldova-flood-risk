@@ -43,6 +43,16 @@ def run() -> None:
             "pct_ag_exposed": round(exposed_ha / total_ag_ha * 100, 2) if total_ag_ha > 0 else 0,
         }
 
+    # Data-driven initial map view, so the frontend camera follows the bbox
+    # automatically when porting to a new country (no hardcoded center/zoom).
+    west, south, east, north = const.MOLDOVA_BBOX
+    view = {
+        "bounds": [west, south, east, north],
+        "center": [round((west + east) / 2, 4), round((south + north) / 2, 4)],
+        "min_zoom": const.MIN_ZOOM,
+        "max_zoom": const.MAX_ZOOM,
+    }
+
     summary = {
         "pct_ag_in_rp100_floodplain": rp_stats[100]["pct_ag_exposed"],
         "total_ag_ha": round(total_ag_ha, 1),
@@ -50,6 +60,7 @@ def run() -> None:
         "exposed_ag_rp100_ha": rp_stats[100]["exposed_ha"],
         "fields_touched_rp100": rp_stats[100]["fields_touched"],
         "by_rp": {str(rp): stats for rp, stats in rp_stats.items()},
+        "view": view,
         "generated": date.today().isoformat(),
         "source": "JRC GloFAS 90m fluvial + FTW field boundaries",
         "default_rp": const.DEFAULT_RP,

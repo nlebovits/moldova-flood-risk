@@ -52,7 +52,7 @@ def run() -> None:
 
     tasks = [
         (tile_id, tile_name, rp)
-        for tile_id, tile_name in const.JRC_MOLDOVA_TILE_IDS
+        for tile_id, tile_name in const.resolve_jrc_tiles()
         for rp in const.RETURN_PERIODS
     ]
 

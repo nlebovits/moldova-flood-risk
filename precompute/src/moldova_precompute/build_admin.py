@@ -1,13 +1,13 @@
-"""Step 4: Moldova raioane with per-RP exposure aggregates.
+"""Step 4: first-level admin units with per-RP exposure aggregates.
 
 Fetches Overture admin boundaries, spatial-joins fields, and aggregates
 flood exposure statistics per administrative unit.
 
-We source boundaries from Overture (not GADM) so the overlay shares the
-basemap's OpenStreetMap lineage and the raion outlines coincide with the
-boundary lines the Protomaps basemap already draws. Overture's `region`
-subtype is Moldova's first administrative level — 37 raioane (incl. Găgăuzia
-and the left-bank/Transnistria unit), matching GADM 4.1's count.
+We source boundaries from Overture so the overlay shares the basemap's
+OpenStreetMap lineage and the unit outlines coincide with the boundary lines
+the Protomaps basemap already draws. The country and the division subtype that
+maps to the first administrative level are configured in ``config.yaml``
+(Moldova: ISO ``MD`` × subtype ``region`` = 37 raioane).
 """
 
 from __future__ import annotations
@@ -20,17 +20,14 @@ import geopandas as gpd
 
 from . import const
 
-# Pin to the same release the frontend's divisions.pmtiles uses
-# (OVERTURE_DIVISIONS_RELEASE in app/src/map/sources.ts) — keep in sync.
-OVERTURE_RELEASE = "2026-05-20.0"
 OVERTURE_DIVISION_AREA_URL = (
-    f"s3://overturemaps-us-west-2/release/{OVERTURE_RELEASE}"
+    f"s3://overturemaps-us-west-2/release/{const.OVERTURE_RELEASE}"
     "/theme=divisions/type=division_area/*"
 )
 
 
 def _load_overture_regions() -> gpd.GeoDataFrame:
-    """Moldova raioane (Overture `region` subtype) as a GeoDataFrame."""
+    """First-level admin units (configured Overture subtype) as a GeoDataFrame."""
     con = duckdb.connect()
     for ext in ("spatial", "httpfs"):
         con.install_extension(ext)
@@ -45,7 +42,7 @@ def _load_overture_regions() -> gpd.GeoDataFrame:
         coalesce(names.common['ro'], names.primary) AS name,
         ST_AsWKB(geometry) AS geometry
     FROM read_parquet('{OVERTURE_DIVISION_AREA_URL}', hive_partitioning=1)
-    WHERE country = 'MD' AND subtype = 'region'
+    WHERE country = '{const.COUNTRY_ISO}' AND subtype = '{const.OVERTURE_SUBTYPE}'
     """
     df = con.execute(query).fetchdf()
     con.close()
@@ -70,9 +67,12 @@ def run() -> None:
             "Run 'moldova-precompute zonal-stats' first."
         )
 
-    click.echo(f"Fetching Overture Moldova regions (release {OVERTURE_RELEASE})...")
+    click.echo(
+        f"Fetching Overture {const.COUNTRY_NAME} "
+        f"'{const.OVERTURE_SUBTYPE}' units (release {const.OVERTURE_RELEASE})..."
+    )
     admin = _load_overture_regions()
-    click.echo(f"Loaded {len(admin)} raioane")
+    click.echo(f"Loaded {len(admin)} admin units")
 
     click.echo(f"Loading fields from {const.FIELDS_PARQUET}")
     fields = gpd.read_parquet(const.FIELDS_PARQUET)

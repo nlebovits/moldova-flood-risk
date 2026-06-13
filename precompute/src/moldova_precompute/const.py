@@ -1,33 +1,45 @@
 """Project-wide constants for the precompute pipeline.
 
-Single source of truth for:
-- Moldova bbox + AOI
-- Return periods (design spec)
-- FTW PMTiles URL (Source Cooperative)
-- JRC GloFAS flood-hazard URL pattern + Moldova-covering tile IDs
-- Hydro ramp class breaks (depth → ramp stop)
-- Output paths (relative to repo root)
+Country-variable values (bbox, ISO code, Overture release/subtype, JRC tiles,
+UTM zone, zoom window) are loaded from ``precompute/config.yaml`` and are the
+only thing to edit when porting to a new country — see ``../PORTING.md``.
 
-These values are referenced by every step of the pipeline. If you need
-to change a URL, a bbox, or a ramp break, change it here.
+Everything else here is generic and locked by the design spec: return periods,
+the Hydro colour ramp, tile-attribute quantization, and the output file layout.
 """
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Final
 
+import yaml
+
 # ---------------------------------------------------------------------------
-# Moldova area of interest
+# Country configuration (precompute/config.yaml — the single port-time seam)
 # ---------------------------------------------------------------------------
-# Slightly expanded bbox to give a 0.1° buffer beyond the national border
-# (so border-touching fields aren't clipped). EPSG:4326 (WGS84).
-MOLDOVA_BBOX: Final[tuple[float, float, float, float]] = (
-    26.5,  # west
-    45.3,  # south
-    30.3,  # east
-    48.6,  # north
-)
+_CONFIG_PATH: Final[Path] = Path(__file__).resolve().parents[2] / "config.yaml"
+_CONFIG: Final[dict] = yaml.safe_load(_CONFIG_PATH.read_text())
+
+COUNTRY_NAME: Final[str] = _CONFIG["country"]["name"]
+COUNTRY_ISO: Final[str] = _CONFIG["country"]["iso"]
+
+# Area of interest, EPSG:4326 [west, south, east, north]. (Name kept for the
+# many call sites; the value comes from config — Moldova is the worked example.)
+MOLDOVA_BBOX: Final[tuple[float, float, float, float]] = tuple(
+    float(v) for v in _CONFIG["country"]["bbox"]
+)  # type: ignore[assignment]
+
+# Overture admin boundaries — release pinned to the frontend's divisions.pmtiles
+# (OVERTURE_DIVISIONS_RELEASE in app/src/map/sources.ts) and the first-level
+# division subtype for this country (Moldova: "region" = raioane).
+OVERTURE_RELEASE: Final[str] = _CONFIG["admin"]["overture_release"]
+OVERTURE_SUBTYPE: Final[str] = _CONFIG["admin"]["overture_subtype"]
+
+# Initial-view zoom window surfaced to the frontend via summary.json.
+MIN_ZOOM: Final[int] = int(_CONFIG["ui"]["min_zoom"])
+MAX_ZOOM: Final[int] = int(_CONFIG["ui"]["max_zoom"])
 
 # ---------------------------------------------------------------------------
 # Return periods — per design spec (README §"Return-period selector").
@@ -47,21 +59,47 @@ FTW_PMTILES_URL: Final[str] = (
 
 # JRC GloFAS flood hazard maps (v2.1.2). Naming pattern:
 #   ID{n}_N{lat}_E{lon}_RP{period}_depth.tif
-# Moldova is covered by exactly two tiles in the JRC global grid:
 JRC_BASE_URL: Final[str] = (
     "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/"
     "CEMS-GLOFAS/flood_hazard"
 )
-JRC_MOLDOVA_TILE_IDS: Final[tuple[tuple[int, str], ...]] = (
-    (134, "N50_E20"),  # main bulk: 20–30°E, 40–50°N
-    (146, "N50_E30"),  # eastern sliver: 30–40°E, 40–50°N
-)
+# The 10°×10° tile grid, used to auto-select tiles covering an arbitrary bbox.
+JRC_TILE_EXTENTS_URL: Final[str] = f"{JRC_BASE_URL}/tile_extents.geojson"
 
-# Tile extents reference (used only if we ever need to programmatically
-# select tiles across a larger AOI — for Moldova the two IDs above are
-# hard-coded and verified).
-JRC_TILE_EXTENTS_URL: Final[str] = (
-    f"{JRC_BASE_URL}/tile_extents.geojson"
+# Explicit tile override from config, or () to auto-derive from the bbox.
+_JRC_TILE_IDS_CONFIG: Final[list] = _CONFIG.get("hazard", {}).get("jrc_tile_ids") or []
+
+
+def resolve_jrc_tiles() -> tuple[tuple[int, str], ...]:
+    """JRC ``(id, name)`` tiles covering the AOI.
+
+    Uses ``hazard.jrc_tile_ids`` from config when set; otherwise derives them
+    from the bbox via the JRC tile-extents grid (cached under ``_work/``).
+    """
+    if _JRC_TILE_IDS_CONFIG:
+        return tuple((int(i), str(n)) for i, n in _JRC_TILE_IDS_CONFIG)
+    from .jrc_tiles import tiles_for_bbox
+
+    return tiles_for_bbox(
+        MOLDOVA_BBOX, JRC_TILE_EXTENTS_URL, WORK_DIR / "tile_extents.geojson"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Metric projection for field-area calculation
+# ---------------------------------------------------------------------------
+def _utm_epsg_from_bbox(bbox: tuple[float, float, float, float]) -> int:
+    """EPSG code for the UTM zone at the bbox centroid (326xx N / 327xx S)."""
+    west, south, east, north = bbox
+    lon = (west + east) / 2
+    lat = (south + north) / 2
+    zone = int((lon + 180) // 6) + 1
+    return (32600 if lat >= 0 else 32700) + zone
+
+
+# Config override, else auto-derive from the bbox (Moldova → 32635 / UTM 35N).
+UTM_EPSG: Final[int] = int(
+    _CONFIG.get("projection", {}).get("utm_epsg") or _utm_epsg_from_bbox(MOLDOVA_BBOX)
 )
 
 # ---------------------------------------------------------------------------
@@ -143,9 +181,12 @@ SUMMARY_JSON: Final[Path] = APP_DATA_DIR / "summary.json"
 TILE_DEPTH_SCALE: Final[int] = 1000  # metres → millimetres (depth_{rp})
 TILE_AREA_SCALE: Final[int] = 100  # hectares → ares (area_ha)
 
-# Development geoparquet-io checkout providing the `gpio pmtiles` command
-# (the released 1.1.0b1 lacks it). Used by build-fields-tiles.
-GPIO_DEV_PROJECT: Final[str] = "/home/nissim/Documents/dev/geoparquet-io"
+# Local geoparquet-io checkout providing the `gpio pmtiles` command (the
+# released 1.1.0b1 lacks it). Used by build-fields-tiles. Override the path with
+# the GPIO_PROJECT env var; see ../PORTING.md and precompute/README.md.
+GPIO_DEV_PROJECT: Final[str] = os.environ.get(
+    "GPIO_PROJECT", "/home/nissim/Documents/dev/geoparquet-io"
+)
 
 # Attribution string — required by JRC's CC BY 4.0 license.
 ATTRIBUTION: Final[str] = (

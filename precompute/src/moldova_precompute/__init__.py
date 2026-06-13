@@ -134,32 +134,24 @@ def build_flood_cogs_cmd(rp: str | None) -> None:
     run(int(rp) if rp is not None else None)
 
 
-@cli.command("export-report")
-def export_report_cmd() -> None:
-    """Export all data for the Quarto report.
-
-    Output: ``report/data/*.json`` + ``report/data/variables.yml``.
-    """
-    from .export_report_data import run
-
-    run()
-
-
 @cli.command("info")
 def info_cmd() -> None:
     """Print resolved paths and constants. Useful for sanity checks."""
-    click.echo("Moldova precompute — resolved paths and constants:")
+    click.echo("precompute — resolved config, paths and constants:")
     click.echo(f"  Repo root          : {const.REPO_ROOT}")
     click.echo(f"  Work dir           : {const.WORK_DIR}")
     click.echo(f"  App data dir       : {const.APP_DATA_DIR}")
     click.echo("")
-    click.echo(f"  Moldova bbox       : {const.MOLDOVA_BBOX}")
+    click.echo(f"  Country            : {const.COUNTRY_NAME} ({const.COUNTRY_ISO})")
+    click.echo(f"  Bbox               : {const.MOLDOVA_BBOX}")
+    click.echo(f"  UTM EPSG (derived) : {const.UTM_EPSG}")
+    click.echo(f"  Overture subtype   : {const.OVERTURE_SUBTYPE} @ {const.OVERTURE_RELEASE}")
     click.echo(f"  Return periods     : {const.RETURN_PERIODS}")
     click.echo(f"  Default RP         : {const.DEFAULT_RP}")
     click.echo("")
     click.echo(f"  FTW PMTiles URL    : {const.FTW_PMTILES_URL}")
     click.echo(f"  JRC base URL       : {const.JRC_BASE_URL}")
-    click.echo(f"  JRC Moldova tiles  : {[t[1] for t in const.JRC_MOLDOVA_TILE_IDS]}")
+    click.echo(f"  JRC tiles          : {[t[1] for t in const.resolve_jrc_tiles()]}")
     click.echo("")
     click.echo(f"  Hydro depth breaks : {const.HYDRO_BREAKS_M}")
     click.echo(f"  Hydro ramp (hex)   : {const.HYDRO_HEX}")

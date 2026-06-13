@@ -13,6 +13,15 @@ export interface SummaryRpStat {
   pct_ag_exposed: number;
 }
 
+/** Data-driven initial map camera, derived from the country bbox by the pipeline. */
+export interface SummaryView {
+  /** [west, south, east, north] in EPSG:4326. */
+  bounds: [number, number, number, number];
+  center: [number, number];
+  min_zoom: number;
+  max_zoom: number;
+}
+
 /** summary.json — headline figures. */
 export interface Summary {
   pct_ag_in_rp100_floodplain: number;
@@ -21,6 +30,8 @@ export interface Summary {
   exposed_ag_rp100_ha: number;
   fields_touched_rp100: number;
   by_rp: Record<string, SummaryRpStat>;
+  /** Optional — older summary.json snapshots predate it; frontend falls back. */
+  view?: SummaryView;
   generated: string;
   source: string;
   default_rp: number;
