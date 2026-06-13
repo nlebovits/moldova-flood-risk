@@ -47,7 +47,7 @@ export function Legend() {
 
       {/* Basemap switcher — folded into the legend. */}
       <div className="mt-3 border-t border-[var(--color-border)] pt-2">
-        <span className="re-eyebrow font-mono text-[var(--color-fg-3)]">
+        <span className="re-eyebrow text-[var(--color-fg-3)]">
           {t(locale, 'basemap.label')}
         </span>
         <div className="mt-1 flex border border-[var(--color-border-strong)]">

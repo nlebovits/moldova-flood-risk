@@ -6,7 +6,7 @@ export function RPSelector() {
   const { selectedRP, setRP, locale } = useApp();
   return (
     <div className="flex flex-col gap-1">
-      <span className="re-eyebrow font-mono text-[var(--color-fg-3)]">
+      <span className="re-eyebrow text-[var(--color-fg-3)]">
         {t(locale, 'rp.label')}
       </span>
       <div className="flex w-full border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]">

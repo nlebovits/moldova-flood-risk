@@ -44,14 +44,16 @@
     "title": "Surse de date",
     "jrc": "JRC GloFAS — pericol de inundații v2.1.2, 90 m fluvial (CC BY 4.0)",
     "ftw": "Fields of The World — limite de parcele (CC BY 4.0)",
-    "gadm": "GADM 4.1 — limite administrative (nivel 1)",
-    "caveat": "JRC 90 m · doar fluvial"
+    "overture": "Overture Maps — limite administrative (ODbL)"
   },
   "eal": {
     "title": "Pierdere anuală estimată",
     "national": "Total național",
     "top_raioane": "Raioane cu cel mai mare risc",
-    "unit_ha_per_year": "ha/an"
+    "unit_ha_per_year": "ha/an",
+    "col_ha": "ha/an",
+    "col_pct": "%",
+    "pct_caption": "% = pondere din terenul agricol"
   },
   "portfolio": {
     "title": "Portofoliu",

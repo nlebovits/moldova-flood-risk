@@ -1,7 +1,13 @@
 """Step 4: Moldova raioane with per-RP exposure aggregates.
 
-Fetches GADM admin boundaries, spatial-joins fields, and aggregates
+Fetches Overture admin boundaries, spatial-joins fields, and aggregates
 flood exposure statistics per administrative unit.
+
+We source boundaries from Overture (not GADM) so the overlay shares the
+basemap's OpenStreetMap lineage and the raion outlines coincide with the
+boundary lines the Protomaps basemap already draws. Overture's `region`
+subtype is Moldova's first administrative level — 37 raioane (incl. Găgăuzia
+and the left-bank/Transnistria unit), matching GADM 4.1's count.
 """
 
 from __future__ import annotations
@@ -9,14 +15,46 @@ from __future__ import annotations
 import json
 
 import click
+import duckdb
 import geopandas as gpd
 
 from . import const
 
-GADM_URL = (
-    "https://geodata.ucdavis.edu/gadm/gadm4.1/json/"
-    "gadm41_MDA_1.json"
+# Pin to the same release the frontend's divisions.pmtiles uses
+# (OVERTURE_DIVISIONS_RELEASE in app/src/map/sources.ts) — keep in sync.
+OVERTURE_RELEASE = "2026-05-20.0"
+OVERTURE_DIVISION_AREA_URL = (
+    f"s3://overturemaps-us-west-2/release/{OVERTURE_RELEASE}"
+    "/theme=divisions/type=division_area/*"
 )
+
+
+def _load_overture_regions() -> gpd.GeoDataFrame:
+    """Moldova raioane (Overture `region` subtype) as a GeoDataFrame."""
+    con = duckdb.connect()
+    for ext in ("spatial", "httpfs"):
+        con.install_extension(ext)
+        con.load_extension(ext)
+    # Public bucket — region is enough; requests go unsigned without creds.
+    con.execute("SET s3_region='us-west-2';")
+
+    # Prefer the Romanian name (RO-first UI); fall back to primary. This keeps
+    # Găgăuzia clean instead of its trilingual primary label.
+    query = f"""
+    SELECT
+        coalesce(names.common['ro'], names.primary) AS name,
+        ST_AsWKB(geometry) AS geometry
+    FROM read_parquet('{OVERTURE_DIVISION_AREA_URL}', hive_partitioning=1)
+    WHERE country = 'MD' AND subtype = 'region'
+    """
+    df = con.execute(query).fetchdf()
+    con.close()
+
+    return gpd.GeoDataFrame(
+        {"name": df["name"]},
+        geometry=gpd.GeoSeries.from_wkb(df["geometry"].apply(bytes), crs="EPSG:4326"),
+        crs="EPSG:4326",
+    )
 
 
 def run() -> None:
@@ -32,8 +70,8 @@ def run() -> None:
             "Run 'moldova-precompute zonal-stats' first."
         )
 
-    click.echo("Fetching GADM Moldova admin boundaries (level 1)...")
-    admin = gpd.read_file(GADM_URL)
+    click.echo(f"Fetching Overture Moldova regions (release {OVERTURE_RELEASE})...")
+    admin = _load_overture_regions()
     click.echo(f"Loaded {len(admin)} raioane")
 
     click.echo(f"Loading fields from {const.FIELDS_PARQUET}")
@@ -48,13 +86,13 @@ def run() -> None:
     click.echo("Spatial joining fields to admin units...")
     fields_with_admin = gpd.sjoin(
         fields[["id", "geometry", "area_ha"] + [f"pct_inun_{rp}" for rp in const.RETURN_PERIODS]],
-        admin[["NAME_1", "geometry"]],
+        admin[["name", "geometry"]],
         how="left",
         predicate="within",
     )
 
     agg_results = []
-    for name, group in fields_with_admin.groupby("NAME_1"):
+    for name, group in fields_with_admin.groupby("name"):
         if not name:
             continue
 
@@ -77,8 +115,7 @@ def run() -> None:
 
         agg_results.append(row)
 
-    admin_out = admin[["NAME_1", "geometry"]].copy()
-    admin_out = admin_out.rename(columns={"NAME_1": "name"})
+    admin_out = admin[["name", "geometry"]].copy()
 
     agg_df = gpd.GeoDataFrame(agg_results)
     admin_out = admin_out.merge(agg_df, on="name", how="left")

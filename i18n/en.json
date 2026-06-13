@@ -44,14 +44,16 @@
     "title": "Data sources",
     "jrc": "JRC GloFAS flood hazard v2.1.2, 90 m fluvial (CC BY 4.0)",
     "ftw": "Fields of The World — field boundaries (CC BY 4.0)",
-    "gadm": "GADM 4.1 — admin boundaries (level 1)",
-    "caveat": "JRC 90 m · fluvial only"
+    "overture": "Overture Maps — admin boundaries (ODbL)"
   },
   "eal": {
     "title": "Expected annual loss",
     "national": "National total",
     "top_raioane": "Highest-risk raioane",
-    "unit_ha_per_year": "ha/yr"
+    "unit_ha_per_year": "ha/yr",
+    "col_ha": "ha/yr",
+    "col_pct": "%",
+    "pct_caption": "% = share of cropland"
   },
   "portfolio": {
     "title": "Portfolio",

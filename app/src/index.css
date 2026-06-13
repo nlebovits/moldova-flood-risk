@@ -256,6 +256,16 @@
     background: var(--color-real);
   }
 
+  /* Source list / provenance — mono caps, no live-vs-proposed semantics.
+     Borrows the stamp typography (mono + uppercase + tracking) without the
+     green "real data" dot or color, since every listed source is real. */
+  .source-mono {
+    font-family: var(--font-mono);
+    font-size: 0.625rem; /* 10px — two points below --fs-12 */
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+  }
+
   /* PROPUS stamp — tangerine, dashed border, hollow dot */
   .stamp-proposed {
     display: inline-flex;

@@ -3,5 +3,25 @@
   "installCommand": "cd app && pnpm install --frozen-lockfile",
   "buildCommand": "cd app && pnpm build",
   "outputDirectory": "app/dist",
-  "framework": null
+  "framework": null,
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/data/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    }
+  ]
 }

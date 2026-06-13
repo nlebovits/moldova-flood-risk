@@ -228,8 +228,8 @@ that fills the rest with floating chrome.
 7. **PROPOSED section [STUB]** — collapsible, visually separated: portfolio intake (live CSV parse +
    point-in-polygon join, indicative readout), "what this becomes" (JRC 90 m floor vs Fathom-grade
    ceiling), and disabled pluvial / building-footprint / infrastructure toggles.
-8. **Data sources [REAL]** — JRC GloFAS, Fields of The World, GADM (linked + licensed) and the
-   persistent "JRC 90 m · fluvial only" caveat.
+8. **Data sources [REAL]** — JRC GloFAS, Fields of The World, Overture Maps (linked + licensed);
+   the "JRC 90 m, fluvial" provenance is carried in the JRC source line itself.
 
 **Map chrome:** Nominatim **geocoder** (top-left), **zoom + national-reset** controls
 (top-right), **legend + basemap switcher** (bottom-left), attribution (bottom-right).
@@ -261,7 +261,8 @@ Everything is **precomputed offline** (`precompute/`) and published as static fi
   on Source Cooperative.
 - **JRC flood hazard** — per-RP **COG** depth rasters (90 m, fluvial, Moldova extent), built by
   `build-flood-cogs` and rendered as the evidence raster. Hosted on Source Cooperative.
-- **Admin units (raioane)** — `admin.geojson` (GADM 4.1, level 1). Per unit, per RP: `total_ag_ha`,
+- **Admin units (raioane)** — `admin.geojson` (Overture Divisions, region level — shares the
+  basemap's OSM lineage so outlines coincide). Per unit, per RP: `total_ag_ha`,
   `exposed_ha_{rp}`, `fields_touched_{rp}`, `pct_exposed_{rp}`. Committed.
 - **Headline + rollups** — `summary.json`: `pct_ag_in_rp100_floodplain`, totals, and a `by_rp`
   table (`exposed_ha`, `fields_touched`, `pct_ag_exposed` per RP). Committed.

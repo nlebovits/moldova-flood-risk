@@ -70,8 +70,8 @@ export function AdminPanel() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-t border-[var(--color-border)] py-2 first:border-t-0">
-      <dt className="re-body-sm">{label}</dt>
-      <dd className="text-[15px]">{children}</dd>
+      <dt className="text-[13px] text-[var(--color-fg-2)]">{label}</dt>
+      <dd className="text-[13px]">{children}</dd>
     </div>
   );
 }

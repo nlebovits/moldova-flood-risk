@@ -1,7 +1,8 @@
 /**
  * Live data sources — all CORS-open, range-requestable, no API keys.
  *
- *   Basemap        — CarbonPlan Protomaps-derived global pmtiles on S3.
+ *   Basemap        — OSM data, built to the Protomaps basemap schema, hosted
+ *                    by CarbonPlan as global pmtiles on S3.
  *   Glyphs         — Protomaps' GitHub Pages basemaps-assets bucket.
  *                    (CarbonPlan's font CDN is empty — every name 404s.)
  *   FTW fields     — Fields of The World, source-layer 2025-01-01 vintage.
@@ -15,9 +16,11 @@ export const BASEMAP_PMTILES =
 export const BASEMAP_GLYPHS =
   'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf';
 
+// Credit lineage in order of contribution: OSM is the data, Protomaps the
+// basemap schema/build, CarbonPlan the host.
 export const BASEMAP_ATTRIBUTION =
+  '© <a href="https://openstreetmap.org" target="_blank">OpenStreetMap</a> · ' +
   '<a href="https://protomaps.com" target="_blank">Protomaps</a> · ' +
-  '<a href="https://openstreetmap.org" target="_blank">OSM</a> · ' +
   '<a href="https://carbonplan.org" target="_blank">CarbonPlan</a>';
 
 export const FTW_PMTILES =

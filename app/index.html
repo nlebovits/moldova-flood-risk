@@ -8,6 +8,30 @@
       name="description"
       content="Expunerea terenului agricol al Republicii Moldova la inundații (JRC 90 m, fluvial). Demo de cercetare."
     />
+
+    <!-- Warm TLS/DNS to the external data hosts the map hits cold on first
+         load. These are range-streamed (PMTiles/COGs) so the win is connection
+         setup, not bytes. crossorigin: every fetch here is a CORS request. -->
+    <link rel="preconnect" href="https://data.source.coop" crossorigin />
+    <link rel="preconnect" href="https://carbonplan-maps.s3.us-west-2.amazonaws.com" crossorigin />
+    <link rel="preconnect" href="https://overturemaps-extras-us-west-2.s3.us-west-2.amazonaws.com" crossorigin />
+    <link rel="preconnect" href="https://server.arcgisonline.com" crossorigin />
+    <link rel="preconnect" href="https://protomaps.github.io" crossorigin />
+    <link rel="dns-prefetch" href="https://data.source.coop" />
+    <link rel="dns-prefetch" href="https://carbonplan-maps.s3.us-west-2.amazonaws.com" />
+    <link rel="dns-prefetch" href="https://overturemaps-extras-us-west-2.s3.us-west-2.amazonaws.com" />
+    <link rel="dns-prefetch" href="https://server.arcgisonline.com" />
+    <link rel="dns-prefetch" href="https://protomaps.github.io" />
+
+    <!-- Fonts: loaded here (not via CSS @import) so they don't block first
+         paint behind the bundled stylesheet. display=swap keeps text visible. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300..700&display=swap"
+    />
+
     <title>Expunerea terenului agricol la inundații · Republica Moldova</title>
   </head>
   <body>
