@@ -7,7 +7,6 @@
 #
 # Usage:
 #   make data        # full pipeline → ships JSON into ../app/public/data/
-#   make report      # full pipeline + render Quarto HTML
 #   make info        # print resolved paths and constants
 #   make clean       # delete _work/ and shipped JSON (keeps lockfile)
 #   make clean-jrc   # delete cached JRC rasters only
@@ -16,14 +15,13 @@
 UV := uv run moldova-precompute
 WORK := _work
 APP_DATA := ../app/public/data
-REPORT_DATA := ../report/data
 
 # Per-RP flood-depth COGs shipped to the app's raster overlay.
 RETURN_PERIODS := 10 20 50 100 200 500
 FLOOD_COGS := $(foreach rp,$(RETURN_PERIODS),$(APP_DATA)/jrc/RP$(rp)_depth.tif)
 
 .PHONY: all
-all: report
+all: data
 
 .PHONY: data
 data: $(APP_DATA)/field_attrs.json \
@@ -39,11 +37,6 @@ fields-tiles: $(APP_DATA)/fields.pmtiles
 
 .PHONY: flood-cogs
 flood-cogs: $(FLOOD_COGS)
-
-.PHONY: report
-report: $(REPORT_DATA)/variables.yml
-	cd ../report && quarto render moldova-flood-risk.qmd
-	@echo "✓ report generated at ../report/_site/moldova-flood-risk.html"
 
 # ---------------------------------------------------------
 # Phase outputs
@@ -86,10 +79,6 @@ $(APP_DATA)/eal.json: $(APP_DATA)/admin.geojson
 	@mkdir -p $(APP_DATA)
 	$(UV) build-eal
 
-$(REPORT_DATA)/variables.yml: $(APP_DATA)/eal.json $(APP_DATA)/summary.json
-	@mkdir -p $(REPORT_DATA)
-	$(UV) export-report
-
 # ---------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------
@@ -107,14 +96,7 @@ clean:
 	rm -f $(APP_DATA)/summary.json
 	rm -f $(APP_DATA)/eal.json
 	rm -rf $(APP_DATA)/jrc
-	rm -rf $(REPORT_DATA)
-	rm -rf ../report/_site
 
 .PHONY: clean-jrc
 clean-jrc:
 	rm -rf $(WORK)/jrc
-
-.PHONY: clean-report
-clean-report:
-	rm -rf $(REPORT_DATA)
-	rm -rf ../report/_site

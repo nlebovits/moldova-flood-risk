@@ -45,10 +45,11 @@ moldova-flood-risk/
 │
 └── precompute/            ← Python + uv. Offline data pipeline.
     ├── Makefile           ← `make data` runs the whole chain
+    ├── config.yaml        ← country / AOI config (the port-time seam)
     ├── pyproject.toml
     └── src/moldova_precompute/
         ├── __init__.py    ← click CLI entry
-        ├── const.py       ← single source of truth: URLs, bbox, RPs, breaks
+        ├── const.py       ← loads config.yaml; URLs, RPs, ramp breaks, derived UTM/JRC tiles
         ├── extract_fields.py
         ├── fetch_jrc.py
         ├── zonal_stats.py
@@ -141,8 +142,8 @@ make clean-jrc    # only the JRC raster cache
 
 ## Deploy
 
-Target: Vercel static. See phase 8 (current task list) for the
-`vercel.json` and deploy script.
+Target: Vercel static — `vercel.json` builds `app/` and serves `app/dist`.
+Deploy with `vercel --prod` from the repo root. See README → "Deployment".
 
 ## License + attribution
 

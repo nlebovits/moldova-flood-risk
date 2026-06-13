@@ -5,11 +5,22 @@ One-shot, offline pipeline that ingests live data from two open sources
 zonal statistics, and emits the small static sidecar JSONs that the
 front-end consumes at runtime.
 
+## Configure
+
+All country-variable values live in **`config.yaml`** — bbox, ISO code, Overture
+release/subtype, optional JRC-tile / UTM-zone overrides, and the camera zoom
+window. Everything derivable from the bbox (UTM zone, the covering JRC tiles,
+the initial map view) is computed automatically. Porting to a new country is
+mostly editing this one file — see [`../PORTING.md`](../PORTING.md).
+
 ## Run
 
 ```bash
 cd precompute
+uv sync
+export GPIO_PROJECT=/path/to/geoparquet-io   # see "geoparquet-io" below
 make data
+make info     # print the resolved config (bbox, derived UTM zone, JRC tiles)
 ```
 
 Outputs land in `../app/public/data/`:
@@ -17,10 +28,17 @@ Outputs land in `../app/public/data/`:
 | File | Source | Purpose |
 |---|---|---|
 | `field_attrs.json` | FTW × JRC zonal stats | Per-field per-RP exposure attrs, joined client-side to live FTW tiles via `setFeatureState` |
-| `admin.geojson` | GADM/OSM × field attrs | Moldova raioane + per-RP exposure aggregates |
-| `summary.json` | aggregate of above | Headline stat (RP100 ag share) |
+| `admin.geojson` | Overture Divisions × field attrs | First-level admin units (Moldova: raioane) + per-RP exposure aggregates |
+| `summary.json` | aggregate of above | Headline stat (RP100 ag share) + data-driven map view |
 
 Intermediate work goes to `_work/` (gitignored).
+
+## geoparquet-io
+
+`build-fields-tiles` shells out to the `gpio pmtiles` command, which the
+published `geoparquet-io` release does not yet ship. Until it does, use a local
+checkout and point `GPIO_PROJECT` at it (defaults to a hardcoded dev path if
+unset). All other steps run without it.
 
 ## Steps
 

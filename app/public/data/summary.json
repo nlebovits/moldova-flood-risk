@@ -36,7 +36,21 @@
       "pct_ag_exposed": 2.66
     }
   },
-  "generated": "2026-06-12",
+  "view": {
+    "bounds": [
+      26.5,
+      45.3,
+      30.3,
+      48.6
+    ],
+    "center": [
+      28.4,
+      46.95
+    ],
+    "min_zoom": 5,
+    "max_zoom": 14
+  },
+  "generated": "2026-06-13",
   "source": "JRC GloFAS 90m fluvial + FTW field boundaries",
   "default_rp": 100
 }

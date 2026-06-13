@@ -3,7 +3,6 @@
 # precompute pipeline, or private assets — none belong in the deploy upload.
 **/node_modules
 precompute
-report
 design-reference
 app/dist
 

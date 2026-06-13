@@ -41,3 +41,8 @@ toggles) in the proposed treatment.
 
 When README and the HTML reference conflict: README wins for behavior, HTML wins for visual
 detail.
+
+## Porting
+Country-specific values live in `precompute/config.yaml` (bbox, ISO, Overture release/subtype)
+plus `DATA_CDN_BASE` in `app/src/config.ts` and a couple of i18n strings. UTM zone, JRC tiles,
+and the initial map view derive automatically. See `PORTING.md`.

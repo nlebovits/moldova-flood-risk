@@ -9,7 +9,7 @@ import { useApp, type Basemap, themeFromBasemap } from '../store/state';
 import { useData } from '../lib/data';
 import { createFloodLayers, createHydroColormapTexture, FLOOD_BEFORE_ID } from './flood';
 import { wireInteractions } from './interactions';
-import { setMap, MOLDOVA_VIEW } from './mapRegistry';
+import { setMap, MOLDOVA_VIEW, resetView } from './mapRegistry';
 import { t } from '../lib/i18n';
 import {
   BASEMAP_PMTILES,
@@ -57,7 +57,7 @@ class ResetControl implements maplibregl.IControl {
     button.innerHTML =
       '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" style="display:block;margin:auto"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
     button.addEventListener('click', () => {
-      map.flyTo({ center: MOLDOVA_VIEW.center, zoom: MOLDOVA_VIEW.zoom, duration: 700 });
+      resetView(map);
     });
     container.appendChild(button);
     this.container = container;
@@ -389,6 +389,8 @@ export function MapView() {
   const selectedField = useApp((s) => s.selectedField);
   const selectedAdminId = useApp((s) => s.selectedAdminId);
   const loadData = useData((s) => s.load);
+  const summaryView = useData((s) => s.summary?.view);
+  const didFitRef = useRef(false);
 
   // deck.gl GPU device, set once the overlay initializes it.
   const [device, setDevice] = useState<Device | null>(null);
@@ -419,6 +421,16 @@ export function MapView() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  // Once summary.json arrives, frame the configured country bbox (data-driven,
+  // so a port needs no camera edit). Runs once; MOLDOVA_VIEW is the pre-load
+  // fallback set at map construction.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !summaryView || didFitRef.current) return;
+    didFitRef.current = true;
+    resetView(map, 0);
+  }, [summaryView]);
 
   // Mount the map exactly once.
   useEffect(() => {

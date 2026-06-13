@@ -67,7 +67,7 @@ def run() -> None:
     click.echo(f"After bbox clip: {len(gdf):,} fields")
 
     gdf["id"] = range(len(gdf))
-    gdf["area_ha"] = gdf.geometry.to_crs("EPSG:32635").area / 10_000
+    gdf["area_ha"] = gdf.geometry.to_crs(f"EPSG:{const.UTM_EPSG}").area / 10_000
 
     gdf.to_parquet(const.FIELDS_PARQUET, index=False)
     click.echo(f"Wrote {len(gdf):,} fields to {const.FIELDS_PARQUET}")

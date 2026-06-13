@@ -37,7 +37,7 @@ def _tile_paths(rp: int) -> list[str]:
     """Cached JRC tile paths covering Moldova at one return period."""
     return [
         str(const.JRC_RASTER_DIR / f"ID{tid}_{tname}_RP{rp}_depth.tif")
-        for tid, tname in const.JRC_MOLDOVA_TILE_IDS
+        for tid, tname in const.resolve_jrc_tiles()
     ]
 
 

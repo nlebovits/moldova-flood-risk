@@ -10,6 +10,8 @@
  *   Esri imagery   — Satellite base, used when basemap === 'satellite'.
  */
 
+import { DATA_CDN_BASE } from '../config';
+
 export const BASEMAP_PMTILES =
   'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/global.pmtiles';
 
@@ -42,14 +44,14 @@ export const FTW_ATTRIBUTION =
  * `min_rp`. Numeric attrs are quantized to integers in the tile (area in
  * ares, depth in mm) — read them via the un-scaling accessors in `lib/types`.
  *
- * Single swap point: the tileset is ~230 MB (too large to commit), so it's
- * hosted on Source Cooperative and streamed range-requestable + CORS-open from
- * its read CDN. For local-only work, point this back at
- * 'pmtiles:///data/fields.pmtiles' (the file is also written there by
- * `make fields-tiles`).
+ * Hosted on the CDN configured in `src/config.ts` (the tileset is ~230 MB, too
+ * large to commit) and streamed range-requestable + CORS-open. For local-only
+ * work, set DATA_CDN_BASE to '' to fall back to 'pmtiles:///data/fields.pmtiles'
+ * (the file is also written there by `make fields-tiles`).
  */
-export const FIELDS_PMTILES =
-  'pmtiles://https://data.source.coop/nlebovits/moldova-test-data/fields.pmtiles';
+export const FIELDS_PMTILES = DATA_CDN_BASE
+  ? `pmtiles://${DATA_CDN_BASE}/fields.pmtiles`
+  : 'pmtiles:///data/fields.pmtiles';
 
 export const FIELDS_SOURCE_LAYER = 'fields';
 

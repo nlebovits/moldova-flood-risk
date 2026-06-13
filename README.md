@@ -57,10 +57,11 @@ moldova-flood-risk/
 │   │   └── styles/tokens.css ← design tokens (mirror of design-reference)
 │   └── public/data/         ← small committed sidecars (summary/admin/eal JSON, CSV)
 ├── precompute/              ← offline pipeline (uv + Makefile): FTW × JRC → tiles + JSON + COGs
-├── report/                  ← Quarto reproducible risk-assessment report
+│   └── config.yaml          ← the country / area-of-interest config (the port-time seam)
 ├── i18n/{ro,en}.json        ← keyed strings (RO default), imported at build time
 ├── design-reference/        ← canonical visual language (HTML style board + tokens + private fonts)
 ├── vercel.json              ← static deploy config (build app/, output app/dist)
+├── PORTING.md               ← how to point this demo at a different country / ADM set
 └── CLAUDE.md                ← agent orientation
 ```
 
@@ -86,8 +87,17 @@ cd precompute
 uv sync
 make data          # fields.pmtiles + JSON sidecars + flood COGs
 make flood-cogs    # just the per-RP flood-depth COGs
-make report        # + render the Quarto report
+make info          # print the resolved config (bbox, UTM zone, JRC tiles)
 ```
+
+What gets built is driven by `precompute/config.yaml` (bbox, ISO code, Overture
+release/subtype). **Porting this demo to a different country is mostly editing
+that one file** — see [`PORTING.md`](PORTING.md).
+
+> The tiling step (`make data` / `build-fields-tiles`) needs a local
+> `geoparquet-io` checkout that provides the `gpio pmtiles` command (the
+> published release lacks it). Point `GPIO_PROJECT` at it — see
+> `precompute/README.md`.
 
 ---
 
@@ -99,14 +109,13 @@ Two artifacts are too large to commit, so they're hosted on Source Cooperative
 - **Flood COGs** — `…/jrc/RP{rp}_depth.tif` (six, ~6 MB each)
 - **Field tiles** — `…/fields.pmtiles` (~230 MB)
 
-The app reaches them through **two single swap points**:
-
-- `app/src/map/flood/jrc-sources.ts` → `JRC_COG_BASE`
-- `app/src/map/sources.ts` → `FIELDS_PMTILES`
-
-Both point at `https://data.source.coop/nlebovits/moldova-test-data/…`. To run fully local,
-point them back at `/data/jrc` and `pmtiles:///data/fields.pmtiles` (the files are also
-written there by `make flood-cogs` / `make fields-tiles`).
+The app reaches them through **one single swap point** — `DATA_CDN_BASE` in
+`app/src/config.ts`. Both `JRC_COG_BASE` (`jrc-sources.ts`) and `FIELDS_PMTILES`
+(`sources.ts`) derive their URLs from it. It points at
+`https://data.source.coop/nlebovits/moldova-test-data`. To run fully local, set
+`DATA_CDN_BASE = ''` and the app falls back to `/data/jrc` and
+`pmtiles:///data/fields.pmtiles` (the files are also written there by
+`make flood-cogs` / `make fields-tiles`).
 
 ### The flood COG pipeline (`build-flood-cogs`)
 
@@ -130,7 +139,7 @@ outside `app/`). Key configuration:
 - **`packageManager: pnpm@10.12.4`** in the root `package.json` + `app/package.json`, with the
   project env var **`ENABLE_EXPERIMENTAL_COREPACK=1`** so Vercel provisions the right pnpm (the
   v9 lockfile is incompatible with Vercel's default pnpm).
-- **`.vercelignore`** — keeps the upload small: excludes `precompute/`, `report/`,
+- **`.vercelignore`** — keeps the upload small: excludes `precompute/`,
   `design-reference/`, the Source-Coop-hosted data files, and the private font symlinks.
 
 Deploy: `vercel --prod`. The committed sidecars are served by Vercel from `/data/…`; the large

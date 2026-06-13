@@ -33,7 +33,7 @@ def _create_vrt(rp: int) -> str:
     """Create a VRT file for the two JRC tiles at a given RP."""
     paths = [
         str(const.JRC_RASTER_DIR / f"ID{tid}_{tname}_RP{rp}_depth.tif")
-        for tid, tname in const.JRC_MOLDOVA_TILE_IDS
+        for tid, tname in const.resolve_jrc_tiles()
     ]
     existing = [p for p in paths if os.path.exists(p)]
     if not existing:
