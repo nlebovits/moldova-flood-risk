@@ -6,6 +6,7 @@ import { AdminSelector } from './components/AdminSelector';
 import { Legend } from './components/Legend';
 import { Geocoder } from './components/Geocoder';
 import { LanguageToggle } from './components/LanguageToggle';
+import { ThemeToggle } from './components/ThemeToggle';
 import { FieldPanel } from './components/FieldPanel';
 import { AdminPanel } from './components/AdminPanel';
 import { EalPanel } from './components/EalPanel';
@@ -13,7 +14,8 @@ import { PortfolioPanel } from './components/PortfolioPanel';
 import { BecomesPanel } from './components/BecomesPanel';
 import { LayerControls } from './components/LayerControls';
 import { DataSources } from './components/DataSources';
-import { useApp, themeFromBasemap } from './store/state';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
+import { useApp } from './store/state';
 import { t } from './lib/i18n';
 
 /**
@@ -24,7 +26,7 @@ import { t } from './lib/i18n';
  * borders — nothing rounded.
  */
 export default function App() {
-  const { locale, basemap, selectedField, selectedAdminId } = useApp();
+  const { locale, selectedField, selectedAdminId, tutorialOpen, themeMode } = useApp();
   const [proposedOpen, setProposedOpen] = useState(false);
 
   // Reflect locale on <html> so the lang attribute matches visible text.
@@ -32,10 +34,18 @@ export default function App() {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  // Dark / satellite basemap flips the chrome to dark tokens (spec).
+  // Apply the chosen chrome theme; 'system' tracks the OS preference live.
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', themeFromBasemap(basemap) === 'dark');
-  }, [basemap]);
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const dark = themeMode === 'dark' || (themeMode === 'system' && mql.matches);
+      document.documentElement.classList.toggle('dark', dark);
+    };
+    apply();
+    if (themeMode !== 'system') return;
+    mql.addEventListener('change', apply);
+    return () => mql.removeEventListener('change', apply);
+  }, [themeMode]);
 
   return (
     <div className="re-base flex h-screen w-screen overflow-hidden">
@@ -45,10 +55,34 @@ export default function App() {
           {/* Header */}
           <header className="flex items-start justify-between gap-3">
             <div>
+              <span className="re-eyebrow mb-1.5 inline-block [font-family:var(--font-mono)] text-[var(--color-fg-3)]">
+                {t(locale, 'app.radiant_earth')
+                  .split('{brand}')
+                  .flatMap((part, i) =>
+                    i === 0
+                      ? [part]
+                      : [
+                          <a
+                            key="brand"
+                            href="https://radiant.earth/"
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: 'var(--color-fg-3)' }}
+                            className="underline underline-offset-2 hover:opacity-80"
+                          >
+                            {t(locale, 'app.radiant_earth_brand')}
+                          </a>,
+                          part,
+                        ],
+                  )}
+              </span>
               <h1 className="re-h4 text-[var(--color-fg-1)]">{t(locale, 'app.title')}</h1>
               <div className="re-meta mt-0.5">{t(locale, 'app.subtitle')}</div>
             </div>
-            <LanguageToggle />
+            <div className="flex flex-col items-end gap-2">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </header>
 
           <RPSelector />
@@ -100,6 +134,10 @@ export default function App() {
           <Legend />
         </div>
       </div>
+
+      {/* First-run tutorial — fixed overlay, re-openable via the map "?" control.
+          Keyed on open state so each open remounts with fresh slide/checkbox state. */}
+      <OnboardingTutorial key={tutorialOpen ? 'open' : 'closed'} />
     </div>
   );
 }

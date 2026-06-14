@@ -2,10 +2,46 @@
   "_comment": "English strings (fast-follow locale). Mirrors the keys in ro.json.",
   "app": {
     "title": "Agricultural land flood exposure",
-    "subtitle": "Republic of Moldova"
+    "subtitle": "Republic of Moldova",
+    "radiant_earth": "A {brand} project.",
+    "radiant_earth_brand": "Radiant Earth"
+  },
+  "tutorial": {
+    "open": "How this works",
+    "step_label": "Guide {n} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "start": "Start exploring",
+    "dont_show": "Don't show this again",
+    "sources_intro": "Three open datasets:",
+    "sourcecoop_link": "Hosted on Source Cooperative",
+    "repo_link": "Source code on GitHub",
+    "slides": {
+      "1": {
+        "title": "Agricultural flood risk",
+        "body": "This map shows how much of Moldova's agricultural land is exposed to fluvial (river) flooding, nationwide. Pick a return period, then click a field or a raion to see how much land falls within the floodplain."
+      },
+      "2": {
+        "title": "Built entirely on open data",
+        "body": "Every layer comes from open, auditable data:"
+      },
+      "3": {
+        "title": "Open, auditable, serverless",
+        "body": "The app is fully open-source and cloud-native — there is no backend. The large data (flood rasters and field boundaries) are hosted on Source Cooperative and served straight from a CDN. Anyone can audit every step."
+      },
+      "4": {
+        "title": "Reproducible for any country",
+        "body": "Because the data and code are open, this map can be re-run for any country in the world — the only real obstacle is compute. Other layers, such as building footprints, can be swapped in with minimal effort."
+      }
+    }
   },
   "headline": {
     "stat_template": "{pct} of mapped agricultural land falls within the 1-in-{rp} floodplain"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
   },
   "rp": {
     "label": "Return period",

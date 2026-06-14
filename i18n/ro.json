@@ -2,10 +2,46 @@
   "_comment": "Romanian strings (default locale). Keys are stable identifiers; swap values per locale. Do not hardcode user-facing copy.",
   "app": {
     "title": "Expunerea terenului agricol la inundații",
-    "subtitle": "Republica Moldova"
+    "subtitle": "Republica Moldova",
+    "radiant_earth": "Un proiect {brand}.",
+    "radiant_earth_brand": "Radiant Earth"
+  },
+  "tutorial": {
+    "open": "Ghid de utilizare",
+    "step_label": "Ghid {n} / {total}",
+    "back": "Înapoi",
+    "next": "Înainte",
+    "start": "Începe explorarea",
+    "dont_show": "Nu mai arăta",
+    "sources_intro": "Trei seturi de date deschise:",
+    "sourcecoop_link": "Găzduit pe Source Cooperative",
+    "repo_link": "Cod sursă pe GitHub",
+    "slides": {
+      "1": {
+        "title": "Risc de inundații pentru terenul agricol",
+        "body": "Această hartă arată expunerea terenului agricol din întreaga Moldovă la inundațiile fluviale (de râu). Alege o perioadă de revenire, apoi apasă pe un câmp sau pe un raion pentru a vedea cât teren se află în zona inundabilă."
+      },
+      "2": {
+        "title": "Construită exclusiv pe date deschise",
+        "body": "Fiecare strat provine din date deschise și auditabile:"
+      },
+      "3": {
+        "title": "Deschisă, auditabilă, fără server",
+        "body": "Aplicația este complet open-source și cloud-native — fără back-end. Datele mari (rasterele de inundații și parcelele) sunt găzduite pe Source Cooperative și livrate direct de pe un CDN. Oricine poate verifica fiecare etapă."
+      },
+      "4": {
+        "title": "Reproductibilă pentru orice țară",
+        "body": "Pentru că datele și codul sunt deschise, această hartă poate fi reluată pentru orice țară din lume — singurul obstacol real fiind capacitatea de calcul. Alte straturi, precum amprentele clădirilor, pot fi adăugate cu efort minim."
+      }
+    }
   },
   "headline": {
     "stat_template": "{pct} din terenul agricol cartografiat se află în zona inundabilă de 1-din-{rp} ani"
+  },
+  "theme": {
+    "system": "Implicit",
+    "light": "Deschis",
+    "dark": "Întunecat"
   },
   "rp": {
     "label": "Perioadă de revenire",

@@ -287,3 +287,38 @@
     background: transparent;
   }
 }
+
+/* =========================================================
+   MapLibre controls (zoom, reset, tutorial "?", attribution)
+   follow the chrome theme in dark mode. Unlayered so they beat
+   MapLibre's own unlayered styles; the extra `.dark` class wins
+   on specificity. Light mode keeps MapLibre's default look.
+   ========================================================= */
+.dark .maplibregl-ctrl-group {
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: none;
+}
+.dark .maplibregl-ctrl-group button {
+  background-color: var(--color-bg-raised);
+  color: var(--color-fg-2); /* drives currentColor for the inline reset/"?" icons */
+}
+.dark .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--color-border);
+}
+.dark .maplibregl-ctrl-group button:not(:disabled):hover {
+  background-color: var(--color-bg-sunken);
+}
+/* Built-in glyphs (zoom ±, attribution "i") are dark SVGs — flip them. */
+.dark .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.dark .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: var(--color-bg-raised);
+}
+.dark .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+.dark .maplibregl-ctrl-attrib a {
+  color: var(--color-fg-2);
+}

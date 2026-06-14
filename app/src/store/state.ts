@@ -5,11 +5,33 @@
 
 import { create } from 'zustand';
 import type { FieldProps, Parcel } from '../lib/types';
+import { isOnboardingDismissed } from '../lib/onboarding';
+
+/** Persisted chrome theme preference (try/catch — storage may be unavailable). */
+const THEME_KEY = 'md-flood-theme';
+function loadThemeMode(): ThemeMode {
+  try {
+    const v = localStorage.getItem(THEME_KEY);
+    if (v === 'light' || v === 'dark' || v === 'system') return v;
+  } catch {
+    /* storage unavailable */
+  }
+  return 'system';
+}
+function persistThemeMode(mode: ThemeMode): void {
+  try {
+    localStorage.setItem(THEME_KEY, mode);
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 export type RP = 10 | 20 | 50 | 100 | 200 | 500;
 export type Basemap = 'positron' | 'positron-dark' | 'satellite';
 export type Locale = 'ro' | 'en';
 export type Theme = 'light' | 'dark';
+/** Chrome theme preference. 'system' follows the OS prefers-color-scheme. */
+export type ThemeMode = 'system' | 'light' | 'dark';
 
 /** Dark / satellite basemaps flip the chrome to dark tokens (spec). */
 export function themeFromBasemap(b: Basemap): Theme {
@@ -37,6 +59,12 @@ export interface AppState {
   portfolio: { loaded: boolean; rows: Parcel[] };
   layers: LayerStubs;
 
+  /** First-run tutorial overlay — open on first visit, re-openable via "?". */
+  tutorialOpen: boolean;
+
+  /** UI chrome theme, independent of the basemap. */
+  themeMode: ThemeMode;
+
   setRP: (rp: RP) => void;
   setBasemap: (b: Basemap) => void;
   setLocale: (l: Locale) => void;
@@ -44,6 +72,8 @@ export interface AppState {
   setSelectedAdmin: (id: string | null) => void;
   clearSelection: () => void;
   setPortfolio: (rows: Parcel[]) => void;
+  setTutorialOpen: (open: boolean) => void;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 export const useApp = create<AppState>((set) => ({
@@ -58,6 +88,11 @@ export const useApp = create<AppState>((set) => ({
   portfolio: { loaded: false, rows: [] },
   layers: { pluvial: false, footprints: false, infra: false },
 
+  // Show the tutorial on first visit; suppressed once dismissed (persisted).
+  tutorialOpen: !isOnboardingDismissed(),
+
+  themeMode: loadThemeMode(),
+
   setRP: (rp) => set({ selectedRP: rp }),
   setBasemap: (basemap) => set({ basemap, theme: themeFromBasemap(basemap) }),
   setLocale: (locale) => set({ locale }),
@@ -70,6 +105,11 @@ export const useApp = create<AppState>((set) => ({
   clearSelection: () => set({ selectedField: null, selectedAdminId: null }),
 
   setPortfolio: (rows) => set({ portfolio: { loaded: true, rows } }),
+  setTutorialOpen: (open) => set({ tutorialOpen: open }),
+  setThemeMode: (themeMode) => {
+    persistThemeMode(themeMode);
+    set({ themeMode });
+  },
 }));
 
 /** Derived: a list of all six return periods, in order. */
