@@ -71,6 +71,43 @@ class ResetControl implements maplibregl.IControl {
 }
 
 // ---------------------------------------------------------------------------
+// Help control — re-opens the first-run tutorial. Stacked with the others
+// (top-right) so it shares MapLibre's control chrome and never collides with
+// the geocoder, legend, or attribution. Reads/writes the store directly, the
+// same way ResetControl reaches the current locale.
+// ---------------------------------------------------------------------------
+class HelpControl implements maplibregl.IControl {
+  private container: HTMLDivElement | null = null;
+  private readonly label: string;
+  constructor(label: string) {
+    this.label = label;
+  }
+
+  onAdd(): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.title = this.label;
+    button.setAttribute('aria-label', this.label);
+    // Lucide `circle-help` glyph, inline so it inherits currentColor.
+    button.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" style="display:block;margin:auto"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
+    button.addEventListener('click', () => {
+      useApp.getState().setTutorialOpen(true);
+    });
+    container.appendChild(button);
+    this.container = container;
+    return container;
+  }
+
+  onRemove(): void {
+    this.container?.parentNode?.removeChild(this.container);
+    this.container = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Palette per theme. Map paint expressions can't read CSS variables, so we
 // resolve theme-dependent colors here and rebuild the style on basemap swap.
 // ---------------------------------------------------------------------------
@@ -462,6 +499,10 @@ export function MapView() {
     );
     map.addControl(
       new ResetControl(t(useApp.getState().locale, 'controls.reset')),
+      'top-right',
+    );
+    map.addControl(
+      new HelpControl(t(useApp.getState().locale, 'tutorial.open')),
       'top-right',
     );
 
