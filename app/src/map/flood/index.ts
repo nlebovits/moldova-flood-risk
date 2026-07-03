@@ -10,9 +10,8 @@ export {
 } from './flood-layer';
 
 export {
-  getJrcFloodUrl,
+  getJrcFloodUrls,
   JRC_ATTRIBUTION,
-  JRC_COG_BASE,
 } from './jrc-sources';
 
 export {

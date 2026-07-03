@@ -79,7 +79,7 @@
   "sources": {
     "title": "Surse de date",
     "jrc": "JRC GloFAS — pericol de inundații v2.1.2, 90 m fluvial (CC BY 4.0)",
-    "ftw": "Fields of The World — limite de parcele (CC BY 4.0)",
+    "ftw": "Fields of The World — limite de parcele; expunerea este calculată din acestea (CC BY 4.0)",
     "overture": "Overture Maps — limite administrative (ODbL)"
   },
   "eal": {
