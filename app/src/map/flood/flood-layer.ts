@@ -15,7 +15,7 @@ import type { GeoTIFF, Overview } from '@developmentseed/geotiff';
 import type { Device, Texture } from '@luma.gl/core';
 import type { RP } from '../../store/state';
 import { createHydroColormapTexture, MAX_DEPTH_M } from './hydro-colormap';
-import { getJrcFloodUrl } from './jrc-sources';
+import { getJrcFloodUrls } from './jrc-sources';
 
 /**
  * Anchor layer the flood raster renders beneath. The raster sits above the
@@ -160,9 +160,11 @@ export interface FloodLayerOptions {
 /**
  * Create the JRC flood-depth COG layer for the given return period.
  *
- * Returns a single-element array (deck.gl's `setProps({ layers })` wants an
- * array) holding one COGLayer that streams the per-RP Moldova COG, handles its
- * Float32 depth data, and applies the Hydro blue colormap on the GPU.
+ * Returns one COGLayer per JRC tile covering the area of interest (see
+ * `getJrcFloodUrls`). Each streams its per-RP depth COG straight from the
+ * Source Cooperative catalog, handles its Float32 depth data, and applies the
+ * Hydro blue colormap on the GPU. All tiles share the same normalization, so
+ * their seams line up. deck.gl's `setProps({ layers })` wants an array anyway.
  */
 export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
   const {
@@ -181,21 +183,24 @@ export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
 
   const renderTile = makeRenderTile(colormapTexture);
 
-  // Stable id across RP changes so deck.gl diffs (re-fetches tiles) rather than
-  // tearing the layer down and recreating it on every selector click.
-  return [
-    new COGLayer({
-      id: 'flood-depth',
-      geotiff: getJrcFloodUrl(rp),
-      opacity,
-      debug,
-      getTileData,
-      renderTile,
-      onGeoTIFFLoad: () => onLoad?.(),
-      // @ts-expect-error beforeId is injected by @deck.gl/mapbox
-      beforeId,
-    }),
-  ];
+  // Positional ids (`flood-depth-0`, ...) are stable across RP changes so
+  // deck.gl diffs (re-fetches tiles) rather than tearing each layer down and
+  // recreating it on every selector click. `onLoad` fires per tile — harmless,
+  // it just marks the flood layer ready.
+  return getJrcFloodUrls(rp).map(
+    (url, i) =>
+      new COGLayer({
+        id: `flood-depth-${i}`,
+        geotiff: url,
+        opacity,
+        debug,
+        getTileData,
+        renderTile,
+        onGeoTIFFLoad: () => onLoad?.(),
+        // @ts-expect-error beforeId is injected by @deck.gl/mapbox
+        beforeId,
+      }),
+  );
 }
 
 /**

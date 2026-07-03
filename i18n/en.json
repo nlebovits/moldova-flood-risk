@@ -79,7 +79,7 @@
   "sources": {
     "title": "Data sources",
     "jrc": "JRC GloFAS flood hazard v2.1.2, 90 m fluvial (CC BY 4.0)",
-    "ftw": "Fields of The World — field boundaries (CC BY 4.0)",
+    "ftw": "Fields of The World — field boundaries; our exposure is computed from these (CC BY 4.0)",
     "overture": "Overture Maps — admin boundaries (ODbL)"
   },
   "eal": {

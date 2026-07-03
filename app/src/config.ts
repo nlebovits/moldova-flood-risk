@@ -8,6 +8,25 @@
  * work, set it to '' and the file fallbacks under /data kick in. See PORTING.md.
  */
 
-/** CDN folder holding `fields.pmtiles` and `jrc/RP{rp}_depth.tif` (no trailing slash). */
+/** CDN folder holding `fields.pmtiles` (no trailing slash). */
 export const DATA_CDN_BASE =
   'https://data.source.coop/nlebovits/moldova-test-data';
+
+/**
+ * Source Cooperative STAC catalog holding the global JRC GloFAS flood-depth
+ * COGs. The flood layer streams the country's tiles straight from here (they're
+ * range-requestable + CORS-open), so there's no per-country clip/upload step.
+ */
+export const JRC_CATALOG_BASE =
+  'https://data.source.coop/nlebovits/jrc-glofas';
+
+/**
+ * The JRC 10° tiles covering the area of interest, as `[id, "Nlat_Elon"]` pairs
+ * — the SAME list as `jrc_tile_ids` in `precompute/config.yaml` (keep in sync
+ * when porting). Moldova spans two: tile 134 covers all but the far-eastern
+ * sliver, tile 146 picks that up. Each becomes one streamed COGLayer per RP.
+ */
+export const JRC_TILES: ReadonlyArray<readonly [number, string]> = [
+  [134, 'N50_E20'],
+  [146, 'N50_E30'],
+];

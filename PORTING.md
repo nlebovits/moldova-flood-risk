@@ -12,6 +12,11 @@ The pipeline assumes two things exist for your target country:
 
 Field boundaries come from **Fields of The World (FTW)**, which is global — no change needed.
 
+Flood depth is streamed live from the global **JRC GloFAS** STAC catalog on
+Source Cooperative (`nlebovits/jrc-glofas`) — there is **no per-country flood COG
+build or upload**. Porting the flood layer is just telling the frontend which of
+the catalog's 10° tiles cover your country (step 3).
+
 ---
 
 ## 1. Edit `precompute/config.yaml`
@@ -56,28 +61,46 @@ make data
 ```
 
 `make data` writes the committed sidecars (`admin.geojson`, `summary.json`,
-`eal.json`) plus the two large artifacts (`fields.pmtiles`, `jrc/*.tif`) into
-`app/public/data/`. The large artifacts are gitignored — they go to your CDN
-(step 3). `summary.json` now carries a data-driven `view` block, so the map
-camera follows your bbox with no frontend edit.
+`eal.json`) plus the large `fields.pmtiles` artifact into `app/public/data/`.
+`fields.pmtiles` is gitignored — it goes to your CDN (step 3). `summary.json`
+now carries a data-driven `view` block, so the map camera follows your bbox with
+no frontend edit.
+
+> The flood layer no longer needs built COGs — it streams the JRC tiles straight
+> from the published catalog (step 3). `make flood-cogs` is therefore optional
+> and off the critical path; it stays only for offline experimentation.
 
 > **geoparquet-io:** the tiling step shells out to `gpio pmtiles`, which the
 > published release does not yet ship. Use a local checkout and point
 > `GPIO_PROJECT` at it. All other steps run without it.
 
-## 3. Host the large artifacts and point the app at them
+## 3. Host `fields.pmtiles` and point the app at the flood tiles
 
-Upload `fields.pmtiles` and the `jrc/` folder to a CORS-open, range-request
-CDN (this demo uses [Source Cooperative](https://source.coop)). Then set the
-single swap point in **`app/src/config.ts`**:
+Two frontend seams, both in **`app/src/config.ts`**.
+
+**a. Fields CDN.** Upload `fields.pmtiles` to a CORS-open, range-request CDN
+(this demo uses [Source Cooperative](https://source.coop)) and set:
 
 ```ts
 export const DATA_CDN_BASE = 'https://<your-cdn>/<path-to-the-folder>';
 ```
 
-Both `FIELDS_PMTILES` (`sources.ts`) and `JRC_COG_BASE` (`jrc-sources.ts`)
-derive from it. For local-only work, set `DATA_CDN_BASE = ''` to use the files
-under `/data`.
+`FIELDS_PMTILES` (`sources.ts`) derives from it. For local-only work, set
+`DATA_CDN_BASE = ''` to fall back to `fields.pmtiles` under `/data`.
+
+**b. Flood tiles.** The flood layer streams from the global JRC GloFAS catalog,
+so `JRC_CATALOG_BASE` normally needs no change. Set `JRC_TILES` to the tiles
+covering your country — the **same** `[id, "Nlat_Elon"]` pairs `moldova-precompute
+info` resolves for your bbox (step 1):
+
+```ts
+export const JRC_TILES: ReadonlyArray<readonly [number, string]> = [
+  [134, 'N50_E20'],   // → your country's covering tiles
+];
+```
+
+Each tile becomes one streamed COGLayer per return period; list all tiles that
+overlap the bbox so no part of the country renders empty.
 
 Also bump `OVERTURE_DIVISIONS_RELEASE` in `app/src/map/sources.ts` to match the
 `overture_release` you set in `config.yaml`, so the basemap admin outlines line
