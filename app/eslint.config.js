@@ -63,4 +63,12 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // Playwright suite + config run under Node, not Vite. They export test
+    // callbacks and a config object, so the Fast-Refresh rule doesn't apply.
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ]);

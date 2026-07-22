@@ -3,6 +3,7 @@ import { useApp } from '../store/state';
 import { useData } from '../lib/data';
 import { t, fmtNumber } from '../lib/i18n';
 import { cn } from '../lib/utils';
+import { InfoTip } from './InfoTip';
 
 const TOP_N = 8;
 
@@ -42,7 +43,14 @@ export function EalPanel() {
   return (
     <div className="border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]">
       <div className="border-b border-[var(--color-border)] px-4 py-3">
-        <div className="re-eyebrow">{t(locale, 'eal.title')}</div>
+        <div className="re-eyebrow flex items-center gap-1.5">
+          {t(locale, 'eal.title')}
+          <InfoTip
+            label={t(locale, 'eal.title')}
+            text={t(locale, 'eal.info')}
+            align="end"
+          />
+        </div>
         <div className="mt-1 flex items-baseline gap-2">
           <span className="font-display text-[1.9rem] leading-none font-medium tracking-[-0.02em] text-[var(--color-accent)]">
             {fmtNumber(locale, eal.national_eal_ha_per_year, { maximumFractionDigits: 1 })}
