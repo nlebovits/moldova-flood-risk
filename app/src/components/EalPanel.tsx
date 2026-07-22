@@ -48,7 +48,8 @@ export function EalPanel() {
           <InfoTip
             label={t(locale, 'eal.title')}
             text={t(locale, 'eal.info')}
-            align="end"
+            href="https://en.wikipedia.org/wiki/Expected_value"
+            linkLabel={t(locale, 'eal.info_link')}
           />
         </div>
         <div className="mt-1 flex items-baseline gap-2">

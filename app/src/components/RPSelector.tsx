@@ -9,7 +9,12 @@ export function RPSelector() {
     <div className="flex flex-col gap-1">
       <span className="re-eyebrow flex items-center gap-1.5 text-[var(--color-fg-3)]">
         {t(locale, 'rp.label')}
-        <InfoTip label={t(locale, 'rp.label')} text={t(locale, 'rp.info')} />
+        <InfoTip
+          label={t(locale, 'rp.label')}
+          text={t(locale, 'rp.info')}
+          href="https://en.wikipedia.org/wiki/Return_period"
+          linkLabel={t(locale, 'rp.info_link')}
+        />
       </span>
       <div className="flex w-full border border-[var(--color-border-strong)] bg-[var(--color-bg-raised)]">
         {RPS.map((rp) => {
