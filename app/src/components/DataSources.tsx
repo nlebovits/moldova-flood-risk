@@ -1,45 +1,59 @@
 import { useApp } from '../store/state';
 import { t } from '../lib/i18n';
-import { DATA_CDN_BASE, JRC_CATALOG_BASE } from '../config';
-import { OVERTURE_DIVISIONS_PMTILES } from '../map/sources';
+import { FTW_COUNTRY_PARQUET, JRC_TILES } from '../config';
+import { getJrcFloodUrls } from '../map/flood';
+import { ADMIN_GEOJSON_URL } from '../map/sources';
 
 /**
- * Single provenance block at the foot of the sidebar. One honest list of the
- * data sources + licenses behind the map. Each row links its provider and
- * offers a direct download of the exact artifact the map streams — the JRC
- * depth catalog, the computed field-exposure tiles, and the Overture divisions.
+ * Provenance block at the foot of the sidebar: the data behind the map, each
+ * row with a direct download of the Moldova-scoped file it draws from — not a
+ * catalog root. The JRC row streams the flood-depth tiles for the return period
+ * on screen, so its links track the selected RP.
  */
-const LINKS: { key: string; href: string; download: string }[] = [
-  {
-    key: 'sources.jrc',
-    href: 'https://data.jrc.ec.europa.eu/collection/id-0054',
-    // The Source Cooperative catalog the flood layer streams from.
-    download: JRC_CATALOG_BASE,
-  },
-  {
-    key: 'sources.ftw',
-    href: 'https://source.coop/ftw/global-data',
-    // Our computed field-exposure tiles (flood attributes baked in).
-    download: `${DATA_CDN_BASE}/fields.pmtiles`,
-  },
-  {
-    key: 'sources.overture',
-    href: 'https://overturemaps.org',
-    // Strip the pmtiles:// protocol prefix to a plain downloadable URL.
-    download: OVERTURE_DIVISIONS_PMTILES.replace(/^pmtiles:\/\//, ''),
-  },
-];
+type Download = { label: string; href: string };
+
+interface Source {
+  key: string;
+  href: string;
+  downloads: Download[];
+}
 
 export function DataSources() {
-  const { locale } = useApp();
+  const { locale, selectedRP } = useApp();
+
+  // The JRC flood layer covers Moldova with a small set of 10° tiles; link each
+  // one for the return period currently shown on the map.
+  const jrcUrls = getJrcFloodUrls(selectedRP);
+  const jrcDownloads: Download[] = JRC_TILES.map(([, tile], i) => ({
+    label: tile,
+    href: jrcUrls[i],
+  }));
+
+  const sources: Source[] = [
+    {
+      key: 'sources.jrc',
+      href: 'https://data.jrc.ec.europa.eu/collection/id-0054',
+      downloads: jrcDownloads,
+    },
+    {
+      key: 'sources.ftw',
+      href: 'https://source.coop/ftw/global-data',
+      downloads: [{ label: t(locale, 'sources.download'), href: FTW_COUNTRY_PARQUET }],
+    },
+    {
+      key: 'sources.overture',
+      href: 'https://overturemaps.org',
+      downloads: [{ label: t(locale, 'sources.download'), href: ADMIN_GEOJSON_URL }],
+    },
+  ];
 
   return (
     <div className="border-t border-[var(--color-border)] pt-3">
       <div className="re-eyebrow mb-2 text-[var(--color-fg-3)]">
         {t(locale, 'sources.title')}
       </div>
-      <ul className="flex flex-col gap-1.5">
-        {LINKS.map(({ key, href, download }) => (
+      <ul className="flex flex-col gap-2">
+        {sources.map(({ key, href, downloads }) => (
           <li key={key} className="flex items-start justify-between gap-3">
             <a
               href={href}
@@ -49,14 +63,7 @@ export function DataSources() {
             >
               {t(locale, key)}
             </a>
-            <a
-              href={download}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${t(locale, 'sources.download')} — ${t(locale, key)}`}
-              title={t(locale, 'sources.download')}
-              className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-[var(--color-fg-3)] transition-colors hover:text-[var(--color-lagoon)]"
-            >
+            <span className="mt-0.5 flex shrink-0 items-center gap-1.5">
               {/* Lucide `download` glyph, inline so it inherits currentColor. */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -69,15 +76,31 @@ export function DataSources() {
                 strokeLinecap="square"
                 strokeLinejoin="miter"
                 aria-hidden="true"
+                className="text-[var(--color-fg-3)]"
               >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <path d="M7 10l5 5 5-5" />
                 <path d="M12 15V3" />
               </svg>
-              <span className="source-mono text-[10px] uppercase tracking-[var(--tracking-eyebrow)]">
-                {t(locale, 'sources.download')}
-              </span>
-            </a>
+              {downloads.map((d, i) => (
+                <span key={d.href} className="flex items-center gap-1.5">
+                  {i > 0 && (
+                    <span aria-hidden className="text-[var(--color-border-strong)]">
+                      ·
+                    </span>
+                  )}
+                  <a
+                    href={d.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${t(locale, 'sources.download')} — ${t(locale, key)} ${d.label}`}
+                    className="source-mono text-[10px] uppercase tracking-[var(--tracking-eyebrow)] text-[var(--color-fg-3)] transition-colors hover:text-[var(--color-lagoon)]"
+                  >
+                    {d.label}
+                  </a>
+                </span>
+              ))}
+            </span>
           </li>
         ))}
       </ul>

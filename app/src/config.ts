@@ -21,6 +21,15 @@ export const JRC_CATALOG_BASE =
   'https://data.source.coop/nlebovits/jrc-glofas';
 
 /**
+ * Fields of The World, admin-partitioned distribution: one GeoParquet per
+ * country under `results-by-admin/admin:country_code=<ISO>/<Name>.parquet`.
+ * This is the field-boundary source the exposure map is computed from, scoped
+ * to the country. When porting, swap the ISO code and country file name.
+ */
+export const FTW_COUNTRY_PARQUET =
+  'https://data.source.coop/ftw/global-data/predictions/vectors/alpha/results-by-admin/admin:country_code=MD/Moldova.parquet';
+
+/**
  * The JRC 10° tiles covering the area of interest, as `[id, "Nlat_Elon"]` pairs
  * — the SAME list as `jrc_tile_ids` in `precompute/config.yaml` (keep in sync
  * when porting). Moldova spans two: tile 134 covers all but the far-eastern
