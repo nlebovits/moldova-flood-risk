@@ -183,14 +183,19 @@ export function createFloodLayers(options: FloodLayerOptions): COGLayer[] {
 
   const renderTile = makeRenderTile(colormapTexture);
 
-  // Positional ids (`flood-depth-0`, ...) are stable across RP changes so
-  // deck.gl diffs (re-fetches tiles) rather than tearing each layer down and
-  // recreating it on every selector click. `onLoad` fires per tile — harmless,
-  // it just marks the flood layer ready.
+  // The layer id encodes the return period (`flood-depth-rp100-0`, ...). A stable
+  // id across RP changes would let COGLayer reload the GeoTIFF while the base
+  // RasterTileLayer keeps its tile cache, which is keyed by tile index, not by
+  // GeoTIFF identity. At a fixed viewport the new RP reuses the same indices, so
+  // whether the cached texture is dropped or served stale depends on browser
+  // timing — Chrome refetched, WebKit (Safari, most Macs) showed the old depth.
+  // Encoding the RP in the id makes deck.gl finalize the old layers and build
+  // fresh ones, so every RP switch fetches new tiles on every engine. `onLoad`
+  // fires per tile — harmless, it just marks the flood layer ready.
   return getJrcFloodUrls(rp).map(
     (url, i) =>
       new COGLayer({
-        id: `flood-depth-${i}`,
+        id: `flood-depth-rp${rp}-${i}`,
         geotiff: url,
         opacity,
         debug,
