@@ -12,6 +12,11 @@ import { ADMIN_GEOJSON_URL } from '../map/sources';
  */
 type Download = { label: string; href: string };
 
+/** Suggested save name from a URL's last path segment (query stripped). */
+function fileName(href: string): string {
+  return decodeURIComponent(href.split('/').pop()?.split('?')[0] ?? 'download');
+}
+
 interface Source {
   key: string;
   href: string;
@@ -91,6 +96,7 @@ export function DataSources() {
                   )}
                   <a
                     href={d.href}
+                    download={fileName(d.href)}
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`${t(locale, 'sources.download')} — ${t(locale, key)} ${d.label}`}
